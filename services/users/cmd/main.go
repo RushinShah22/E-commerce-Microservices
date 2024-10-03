@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/RushinShah22/e-commerce-micro/services/users/pkg/controllers"
 	client "github.com/RushinShah22/e-commerce-micro/services/users/pkg/database"
 	"github.com/go-chi/chi/v5"
 	"github.com/joho/godotenv"
@@ -26,12 +27,10 @@ func main() {
 	root := chi.NewRouter()
 
 	// USER router
-	// root.Route("/user", func(r chi.Router) {
-	// 	r.Get("/")
-	// 	r.Get("/{id}")
-	// 	r.Post("/")
-	// 	r.Patch("/{id}")
-	// })
+	root.Route("/user", func(r chi.Router) {
+		r.Get("/", controllers.GetAllUser)
+		r.Get("/{id}", controllers.GetAUser)
+	})
 
 	// start server
 	log.Println("Server started on 3000")

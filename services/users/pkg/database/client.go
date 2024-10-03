@@ -7,18 +7,21 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var UserInstance mongo.Client
+type UserInterface struct {
+	Client *mongo.Client
+	DB     *mongo.Database
+}
+
+var User UserInterface
 
 func ConnToDB(uri string) {
 
-	UserInstance, err := mongo.Connect(context.TODO(), options.Client().
+	client, err := mongo.Connect(context.TODO(), options.Client().
 		ApplyURI(uri))
 	if err != nil {
 		panic(err)
 	}
-	defer func() {
-		if err := UserInstance.Disconnect(context.TODO()); err != nil {
-			panic(err)
-		}
-	}()
+	User.Client = client
+	User.DB = User.Client.Database("e-commerce")
+
 }
