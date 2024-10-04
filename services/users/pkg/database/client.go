@@ -15,7 +15,6 @@ type UserInterface struct {
 var User UserInterface
 
 func ConnToDB(uri string) {
-
 	client, err := mongo.Connect(context.TODO(), options.Client().
 		ApplyURI(uri))
 	if err != nil {

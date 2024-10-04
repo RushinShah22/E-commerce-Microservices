@@ -25,16 +25,10 @@ func GetAllUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var users []model.User
-	for cursor.Next(r.Context()) {
-		var user bson.M
-		var userFormatted model.User
-		err := cursor.Decode(&user)
-		err = cursor.Decode(&userFormatted)
-		if err != nil {
-			panic(err)
-		}
-		userFormatted.ID = user["_id"].(primitive.ObjectID)
-		users = append(users, userFormatted)
+	err = cursor.All(r.Context(), &users)
+
+	if err != nil {
+		panic(err)
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
@@ -48,17 +42,15 @@ func GetAUser(w http.ResponseWriter, r *http.Request) {
 	_id := chi.URLParam(r, "id")
 
 	coll := client.User.DB.Collection("users")
+	id, _ := primitive.ObjectIDFromHex(_id)
 
-	user := coll.FindOne(r.Context(), bson.M{"_id": _id})
+	var user model.User
+	coll.FindOne(r.Context(), bson.D{{Key: "_id", Value: id}}).Decode(&user)
 
-	userJson, err := json.Marshal(user)
-
-	if err != nil {
-		panic("error")
-	}
-
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write(userJson)
+	_ = json.NewEncoder(w).Encode(user)
+
 }
 
 func AddAUser(w http.ResponseWriter, r *http.Request) {
