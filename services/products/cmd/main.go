@@ -31,6 +31,7 @@ func main() {
 		r.Get("/ping", func(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte("Hello From Products."))
 		})
+		r.Get("/", controllers.GetAllProducts)
 		r.Post("/", controllers.CreateProduct)
 	})
 
