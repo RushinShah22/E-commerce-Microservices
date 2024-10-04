@@ -6,6 +6,7 @@ import (
 
 	"github.com/RushinShah22/e-commerce-micro/services/products/pkg/database"
 	model "github.com/RushinShah22/e-commerce-micro/services/products/pkg/models"
+	"github.com/go-chi/chi/v5"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -46,4 +47,17 @@ func GetAllProducts(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(products)
 
+}
+
+func GetAProduct(w http.ResponseWriter, r *http.Request) {
+	var product model.Product
+	id, err := primitive.ObjectIDFromHex(chi.URLParam(r, "id"))
+	if err != nil {
+		http.Error(w, "Something went Wrong.", http.StatusInternalServerError)
+	}
+
+	database.Product.ProductColl.FindOne(r.Context(), bson.D{{Key: "_id", Value: id}}).Decode(&product)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(product)
 }
