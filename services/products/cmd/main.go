@@ -34,6 +34,8 @@ func main() {
 		r.Get("/", controllers.GetAllProducts)
 		r.Post("/", controllers.CreateProduct)
 		r.Get("/{id}", controllers.GetAProduct)
+		r.Patch("/{id}", controllers.UpdateProduct)
+
 	})
 
 	// start server
