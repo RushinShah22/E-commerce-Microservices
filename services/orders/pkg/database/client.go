@@ -2,7 +2,6 @@ package database
 
 import (
 	"context"
-	"fmt"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -19,7 +18,6 @@ type OrderInterface struct {
 var Order OrderInterface
 
 func ConnToDB(uri string) {
-	fmt.Println(uri)
 	client, err := mongo.Connect(context.TODO(), options.Client().
 		ApplyURI(uri))
 
