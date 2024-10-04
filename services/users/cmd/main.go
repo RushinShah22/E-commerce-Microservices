@@ -27,9 +27,10 @@ func main() {
 	root := chi.NewRouter()
 
 	// USER router
-	root.Route("/user", func(r chi.Router) {
+	root.Route("/users", func(r chi.Router) {
 		r.Get("/", controllers.GetAllUser)
 		r.Get("/{id}", controllers.GetAUser)
+		r.Post("/", controllers.AddAUser)
 	})
 
 	// start server
