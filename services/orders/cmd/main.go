@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/RushinShah22/e-commerce-micro/services/orders/pkg/controllers"
 	"github.com/RushinShah22/e-commerce-micro/services/orders/pkg/database"
 	"github.com/go-chi/chi/v5"
 	"github.com/joho/godotenv"
@@ -31,6 +32,8 @@ func main() {
 		r.Get("/ping", func(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte("Hello from Orders"))
 		})
+		r.Post("/", controllers.CreateOrder)
+		r.Get("/", controllers.GetAllOrders)
 	})
 
 	// start server

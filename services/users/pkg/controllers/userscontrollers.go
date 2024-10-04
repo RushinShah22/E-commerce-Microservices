@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	client "github.com/RushinShah22/e-commerce-micro/services/users/pkg/database"
+	database "github.com/RushinShah22/e-commerce-micro/services/users/pkg/database"
 	model "github.com/RushinShah22/e-commerce-micro/services/users/pkg/models"
 	"github.com/go-chi/chi/v5"
 	"go.mongodb.org/mongo-driver/bson"
@@ -13,7 +13,7 @@ import (
 )
 
 func GetAllUser(w http.ResponseWriter, r *http.Request) {
-	coll := client.User.DB.Collection("users")
+	coll := database.User.DB.Collection("users")
 
 	cursor, err := coll.Find(r.Context(), bson.M{})
 
@@ -41,7 +41,7 @@ func GetAllUser(w http.ResponseWriter, r *http.Request) {
 func GetAUser(w http.ResponseWriter, r *http.Request) {
 	_id := chi.URLParam(r, "id")
 
-	coll := client.User.DB.Collection("users")
+	coll := database.User.DB.Collection("users")
 	id, _ := primitive.ObjectIDFromHex(_id)
 
 	var user model.User
@@ -54,7 +54,7 @@ func GetAUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func AddAUser(w http.ResponseWriter, r *http.Request) {
-	coll := client.User.DB.Collection("users")
+	coll := database.User.DB.Collection("users")
 	var user model.User
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&user)

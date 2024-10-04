@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/RushinShah22/e-commerce-micro/services/users/pkg/controllers"
-	client "github.com/RushinShah22/e-commerce-micro/services/users/pkg/database"
+	database "github.com/RushinShah22/e-commerce-micro/services/users/pkg/database"
 	"github.com/go-chi/chi/v5"
 	"github.com/joho/godotenv"
 )
@@ -17,12 +17,13 @@ func main() {
 		log.Println("No .env file found")
 	}
 	uri := os.Getenv("MONGODB_URI")
+	port := os.Getenv("PORT")
 
 	if uri == "" {
 		log.Fatal("Set your 'MONGODB_URI' environment variable.")
 	}
 
-	client.ConnToDB(uri)
+	database.ConnToDB(uri)
 	// Create the entry point
 	root := chi.NewRouter()
 
@@ -34,8 +35,8 @@ func main() {
 	})
 
 	// start server
-	log.Println("Server started on 3000")
-	if err := http.ListenAndServe(":3000", root); err != nil {
+	log.Printf("Server started on %s", port)
+	if err := http.ListenAndServe(":"+port, root); err != nil {
 		panic(err)
 	}
 
