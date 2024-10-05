@@ -36,7 +36,6 @@
 ## 📍 Overview
 
 <code>❯ The E-commerce Microservices project is designed to provide a scalable and modular architecture for building a comprehensive e-commerce platform. Leveraging the principles of microservices, this application breaks down the e-commerce functionalities into discrete services, each responsible for specific operations, such as product management, order processing, user management, payment handling, and shipping logistics.
-
 ❯ This architecture promotes flexibility, allowing each service to be developed, deployed, and scaled independently. The system employs an event-driven approach, utilizing message queues for asynchronous communication between services, which enhances performance and reliability.</code>
 
 ---
