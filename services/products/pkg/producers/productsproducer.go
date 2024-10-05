@@ -20,7 +20,7 @@ var Product ProductProducer
 
 func SetupProducer() {
 	var err error
-	Product.Producer, err = kafka.NewProducer(&kafka.ConfigMap{"bootstrap.servers": "172.20.0.3:9092"})
+	Product.Producer, err = kafka.NewProducer(&kafka.ConfigMap{"bootstrap.servers": "kafka1:19092"})
 	Product.Topic = "products"
 	if err != nil {
 		panic(err)
