@@ -11,12 +11,17 @@ import (
 	"github.com/go-chi/chi/v5"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func checkQuantity(ctx context.Context, productID primitive.ObjectID, quantity int) bool {
+func checkQuantity(ctx context.Context, productID primitive.ObjectID, quantity int) int {
 	var product model.Catalog
 	database.Order.CatalogColl.FindOne(ctx, bson.D{{Key: "productID", Value: productID}}).Decode(&product)
-	return product.Quantity >= quantity
+
+	if product.ID == primitive.NilObjectID {
+		return -1
+	}
+	return product.Quantity - quantity
 }
 
 func CreateOrder(w http.ResponseWriter, r *http.Request) {
@@ -27,12 +32,22 @@ func CreateOrder(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 	w.Header().Set("Content-Type", "application/json")
-	if !checkQuantity(r.Context(), newOrder.ProductID, newOrder.Quantity) {
+	newQuantity := checkQuantity(r.Context(), newOrder.ProductID, newOrder.Quantity)
+	if newQuantity < 0 {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Required Quantity Not available."))
+		w.Write([]byte("Required Quantity or Product Not available."))
+		return
+	}
+
+	var newProduct model.Catalog = model.Catalog{
+		Quantity: newQuantity,
 	}
 
 	res, err := database.Order.OrderColl.InsertOne(r.Context(), newOrder)
+
+	proRes := database.Order.CatalogColl.FindOneAndUpdate(r.Context(), bson.D{{Key: "productID", Value: newOrder.ProductID}}, bson.M{"$set": bson.M{"quantity": newQuantity}}, options.FindOneAndUpdate().SetReturnDocument(options.After))
+	proRes.Decode(&newProduct)
+
 	newOrder.ID = res.InsertedID.(primitive.ObjectID)
 
 	w.WriteHeader(http.StatusCreated)

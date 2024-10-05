@@ -5,6 +5,7 @@ RUN /sbin/apk update && \
     /usr/sbin/update-ca-certificates
 
 RUN  apk add --no-cache build-base
+
 RUN adduser -D -g '' products
 WORKDIR /app
 
