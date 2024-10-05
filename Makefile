@@ -24,4 +24,5 @@ broker-micro:
 	docker compose build  && \
 	docker compose up -d && \
 	go run . localhost:9092 products 2 1 && \
-	go run . localhost:9092 orders 1 1
+	go run . localhost:9092 orders 1 1 && \
+	go run . localhost:9092 users 1 1
