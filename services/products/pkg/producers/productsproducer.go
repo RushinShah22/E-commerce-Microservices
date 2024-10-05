@@ -2,6 +2,7 @@ package producers
 
 import (
 	"encoding/json"
+	"log"
 
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 )
@@ -42,5 +43,5 @@ func ProduceMessage(msg interface{}, partition int32) {
 	if err != nil {
 		panic(err)
 	}
-
+	log.Println("Produced a product.")
 }

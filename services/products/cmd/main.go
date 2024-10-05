@@ -6,9 +6,11 @@ import (
 	"net/http"
 	"os"
 
+	consumer "github.com/RushinShah22/e-commerce-micro/services/products/pkg/consumers"
 	"github.com/RushinShah22/e-commerce-micro/services/products/pkg/controllers"
 	"github.com/RushinShah22/e-commerce-micro/services/products/pkg/database"
 	"github.com/RushinShah22/e-commerce-micro/services/products/pkg/producers"
+	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/go-chi/chi/v5"
 	"github.com/joho/godotenv"
 )
@@ -47,6 +49,10 @@ func main() {
 
 	producers.SetupProducer()
 	defer producers.Product.Producer.Close()
+
+	// Setup consumers
+	topic := "orders"
+	go consumer.SetupConsumer("orders", []string{"orders"}, &[]kafka.TopicPartition{{Topic: &topic, Partition: consumer.CREATED}})
 
 	// start server
 	log.Printf("Server started on %s", port)
