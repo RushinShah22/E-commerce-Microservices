@@ -29,5 +29,5 @@ COPY --from=builder /app/.env /app
 
 USER orders
 
-EXPOSE 8000
+EXPOSE 4000
 ENTRYPOINT ["./orders-micro"]

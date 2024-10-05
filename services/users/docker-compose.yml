@@ -1,0 +1,25 @@
+version: '3'
+
+
+services:
+  users:
+    build: 
+      context: .
+      dockerfile: ./users-dockerfile.dockerfile
+    container_name: users-micro
+    ports:
+      - 3000:3000
+    networks:
+      - e-commerce
+    depends_on:
+      - usersDB
+  
+  usersDB:
+    image: mongo:latest
+    container_name: users-micro-db
+    networks:
+        - e-commerce
+
+networks:
+  e-commerce:
+    external: true
