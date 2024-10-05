@@ -51,7 +51,7 @@ func GetAllOrders(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Printf("%#v", orders)
 
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(&orders)
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(orders)
 }

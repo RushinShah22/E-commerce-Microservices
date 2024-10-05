@@ -6,6 +6,7 @@ import (
 
 	"github.com/RushinShah22/e-commerce-micro/services/products/pkg/database"
 	model "github.com/RushinShah22/e-commerce-micro/services/products/pkg/models"
+	"github.com/RushinShah22/e-commerce-micro/services/products/pkg/producers"
 	"github.com/go-chi/chi/v5"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -22,9 +23,13 @@ func CreateProduct(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 	newProduct.ID = insertedPro.InsertedID.(primitive.ObjectID)
+
 	w.WriteHeader(http.StatusCreated)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(newProduct)
+
+	// Produce message in Go routine
+	go producers.ProduceMessage(newProduct, producers.CREATED)
 }
 
 func GetAllProducts(w http.ResponseWriter, r *http.Request) {
@@ -80,4 +85,7 @@ func UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(updatedProduct)
+
+	// Produce message in Go routine
+	go producers.ProduceMessage(updatedProduct, producers.UPDATED)
 }

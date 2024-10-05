@@ -1,12 +1,14 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"os"
 
 	"github.com/RushinShah22/e-commerce-micro/services/products/pkg/controllers"
 	"github.com/RushinShah22/e-commerce-micro/services/products/pkg/database"
+	"github.com/RushinShah22/e-commerce-micro/services/products/pkg/producers"
 	"github.com/go-chi/chi/v5"
 	"github.com/joho/godotenv"
 )
@@ -22,8 +24,11 @@ func main() {
 		log.Fatal("Set your 'MONGODB_URI' environment variable.")
 	}
 
+	// DB setup
 	database.ConnToDB(uri)
-	// Create the entry point
+	defer database.Product.Client.Disconnect(context.TODO())
+
+	// Create the Router entry point
 	root := chi.NewRouter()
 
 	// PRODUCT router
@@ -37,6 +42,11 @@ func main() {
 		r.Patch("/{id}", controllers.UpdateProduct)
 
 	})
+
+	// Create Producer
+
+	producers.SetupProducer()
+	defer producers.Product.Producer.Close()
 
 	// start server
 	log.Printf("Server started on %s", port)
