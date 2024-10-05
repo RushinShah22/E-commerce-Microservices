@@ -11,6 +11,9 @@ services:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_SERVER_ID: 1
       ZOOKEEPER_SERVERS: zoo1:2888:3888
+    networks:
+      - e-commerce
+  
 
   kafka1:
     image: confluentinc/cp-kafka:7.3.2
@@ -34,5 +37,12 @@ services:
       KAFKA_JMX_HOSTNAME: ${DOCKER_HOST_IP:-127.0.0.1}
       KAFKA_AUTHORIZER_CLASS_NAME: kafka.security.authorizer.AclAuthorizer
       KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "true"
+    networks:
+      - e-commerce
     depends_on:
       - zoo1
+    
+
+networks:
+  e-commerce:
+    external: true

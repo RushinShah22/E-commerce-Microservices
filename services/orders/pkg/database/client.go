@@ -18,12 +18,14 @@ type OrderInterface struct {
 var Order OrderInterface
 
 func ConnToDB(uri string) {
+
 	client, err := mongo.Connect(context.TODO(), options.Client().
 		ApplyURI(uri))
 
 	if err != nil {
 		panic(err)
 	}
+
 	Order.Client = client
 	Order.DB = Order.Client.Database("e-commerce")
 	Order.UserColl = Order.DB.Collection("users")
