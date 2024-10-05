@@ -3,7 +3,7 @@ package producers
 import (
 	"encoding/json"
 
-	"gopkg.in/confluentinc/confluent-kafka-go.v1/kafka"
+	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 )
 
 const (
@@ -20,8 +20,7 @@ var Product ProductProducer
 
 func SetupProducer() {
 	var err error
-	Product.Producer, err = kafka.NewProducer(&kafka.ConfigMap{"bootstrap.servers": "localhost:9092",
-		"acks": "all"})
+	Product.Producer, err = kafka.NewProducer(&kafka.ConfigMap{"bootstrap.servers": "172.20.0.3:9092"})
 	Product.Topic = "products"
 	if err != nil {
 		panic(err)
