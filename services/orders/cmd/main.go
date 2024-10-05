@@ -9,6 +9,7 @@ import (
 	consumer "github.com/RushinShah22/e-commerce-micro/services/orders/pkg/consumers"
 	"github.com/RushinShah22/e-commerce-micro/services/orders/pkg/controllers"
 	"github.com/RushinShah22/e-commerce-micro/services/orders/pkg/database"
+	"github.com/RushinShah22/e-commerce-micro/services/orders/pkg/producers"
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/go-chi/chi/v5"
 	"github.com/joho/godotenv"
@@ -45,6 +46,8 @@ func main() {
 	go consumer.SetupConsumer("products", []string{"products"}, &[]kafka.TopicPartition{
 		{Topic: &topic, Partition: consumer.CREATED},
 	})
+
+	go producers.SetupProducer()
 	// start server
 	log.Printf("Server started on %s", port)
 	if err := http.ListenAndServe(":"+port, root); err != nil {

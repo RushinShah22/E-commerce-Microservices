@@ -8,6 +8,7 @@ import (
 
 	"github.com/RushinShah22/e-commerce-micro/services/orders/pkg/database"
 	"github.com/RushinShah22/e-commerce-micro/services/orders/pkg/model"
+	"github.com/RushinShah22/e-commerce-micro/services/orders/pkg/producers"
 	"github.com/go-chi/chi/v5"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -52,6 +53,9 @@ func CreateOrder(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(&newOrder)
+
+	// Producing new orders
+	go producers.ProduceMessage(newOrder, producers.CREATED)
 }
 
 func GetAllOrders(w http.ResponseWriter, r *http.Request) {
