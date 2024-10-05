@@ -8,8 +8,9 @@ import (
 )
 
 type UserInterface struct {
-	Client *mongo.Client
-	DB     *mongo.Database
+	Client   *mongo.Client
+	DB       *mongo.Database
+	UserColl *mongo.Collection
 }
 
 var User UserInterface
@@ -22,5 +23,6 @@ func ConnToDB(uri string) {
 	}
 	User.Client = client
 	User.DB = User.Client.Database("e-commerce")
+	User.UserColl = User.DB.Collection("users")
 
 }

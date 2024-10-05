@@ -7,6 +7,7 @@ import (
 
 	"github.com/RushinShah22/e-commerce-micro/services/users/pkg/controllers"
 	database "github.com/RushinShah22/e-commerce-micro/services/users/pkg/database"
+	"github.com/RushinShah22/e-commerce-micro/services/users/pkg/producers"
 	"github.com/go-chi/chi/v5"
 	"github.com/joho/godotenv"
 )
@@ -33,6 +34,10 @@ func main() {
 		r.Get("/{id}", controllers.GetAUser)
 		r.Post("/", controllers.AddAUser)
 	})
+
+	// Setup up producers
+
+	go producers.SetupProducer()
 
 	// start server
 	log.Printf("Server started on %s", port)
