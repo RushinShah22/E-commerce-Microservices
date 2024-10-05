@@ -8,6 +8,7 @@ import (
 
 	"github.com/RushinShah22/e-commerce-micro/services/orders/pkg/database"
 	"github.com/RushinShah22/e-commerce-micro/services/orders/pkg/model"
+	"github.com/go-chi/chi/v5"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -54,4 +55,26 @@ func GetAllOrders(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(orders)
+}
+
+func GetAOrder(w http.ResponseWriter, r *http.Request) {
+	var order model.Order
+
+	id, err := primitive.ObjectIDFromHex(chi.URLParam(r, "id"))
+
+	w.Header().Set("Content-Type", "application/json")
+	if err != nil {
+		http.Error(w, "Something Went Wrong", http.StatusInternalServerError)
+		return
+	}
+
+	database.Order.OrderColl.FindOne(r.Context(), bson.D{{Key: "_id", Value: id}}).Decode(&order)
+
+	if order.ID == primitive.NilObjectID {
+		http.Error(w, "Order was not found", http.StatusNotFound)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(order)
+
 }

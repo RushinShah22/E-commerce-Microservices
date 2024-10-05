@@ -38,6 +38,7 @@ func main() {
 		})
 		r.Post("/", controllers.CreateOrder)
 		r.Get("/", controllers.GetAllOrders)
+		r.Get("/{id}", controllers.GetAOrder)
 	})
 
 	topic := "products"
