@@ -45,14 +45,18 @@ func main() {
 
 	})
 
-	// Create Producer
+	// Setup consumers
+	// Consumer for orders produced.
+	orderTopic := "orders"
+	go consumer.SetupConsumer("orders", []string{"orders"}, &[]kafka.TopicPartition{{Topic: &orderTopic, Partition: consumer.CREATED}}, consumer.OrderCallback)
 
+	// Consumer for new Seller created
+	// sellerTopics := "users"
+	// go consumer.SetupConsumer("users", []string{"users"}, &[]kafka.TopicPartition{{Topic: &sellerTopics, Partition: consumer.CREATED}}, consumer.OrderCallback)
+
+	// Create Producer
 	producers.SetupProducer()
 	defer producers.Product.Producer.Close()
-
-	// Setup consumers
-	topic := "orders"
-	go consumer.SetupConsumer("orders", []string{"orders"}, &[]kafka.TopicPartition{{Topic: &topic, Partition: consumer.CREATED}})
 
 	// start server
 	log.Printf("Server started on %s", port)

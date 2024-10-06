@@ -20,7 +20,7 @@ const (
 
 var Order *kafka.Consumer
 
-func SetupConsumer(groupID string, topics []string, topicPartition *[]kafka.TopicPartition) {
+func SetupConsumer(groupID string, topics []string, topicPartition *[]kafka.TopicPartition, callback func(*kafka.Message)) {
 	var err error
 	Order, err = kafka.NewConsumer(&kafka.ConfigMap{"bootstrap.servers": "kafka1:19092", "group.id": groupID, "auto.offset.reset": "smallest"})
 
@@ -43,26 +43,8 @@ func SetupConsumer(groupID string, topics []string, topicPartition *[]kafka.Topi
 		switch e := ev.(type) {
 		case *kafka.Message:
 			// application-specific processing
-			type Order struct {
-				ID          primitive.ObjectID `bson:"_id,omitempty" json:"_id,omitempty"`
-				ProductID   primitive.ObjectID `bson:"productID,omitempty" json:"productID,omitempty"`
-				Quantity    int                `bson:"quantity,omitempty" json:"quantity,omitempty"`
-				UserID      primitive.ObjectID `bson:"userID,omitempty" json:"userID,omitempty"`
-				DateOfOrder primitive.DateTime `bson:"dateOfOrder,omitempty" json:"dateOfOrder,omitempty"`
-				Status      string             `bson:"status,omitempty" json:"status,omitempty"`
-			}
-			var data Order
-			err := json.Unmarshal(e.Value, &data)
-			if err != nil {
-				panic(err)
-			}
-			switch e.TopicPartition.Partition {
-			case CREATED:
-				var product model.Product
-				database.Product.ProductColl.FindOne(context.TODO(), bson.D{{Key: "_id", Value: data.ProductID}}).Decode(&product)
-				database.Product.ProductColl.FindOneAndUpdate(context.TODO(), bson.D{{Key: "_id", Value: data.ProductID}}, bson.M{"$set": bson.M{"quantity": product.Quantity - data.Quantity}})
-				log.Printf("Consumed new product %s", data.ProductID)
-			}
+
+			go callback(e)
 
 		case kafka.Error:
 			fmt.Fprintf(os.Stderr, "%% Error: %v\n", e)
@@ -70,6 +52,29 @@ func SetupConsumer(groupID string, topics []string, topicPartition *[]kafka.Topi
 		default:
 			fmt.Printf("Ignored %v\n", e)
 		}
+	}
+
+}
+
+func OrderCallback(msg *kafka.Message) {
+	var data interface{}
+	err := json.Unmarshal(msg.Value, &data)
+	if err != nil {
+		panic(err)
+	}
+	var productID primitive.ObjectID
+	var quantityUsed int
+
+	if order, ok := data.(map[string]interface{}); ok {
+		productID, _ = primitive.ObjectIDFromHex(order["productID"].(string))
+		quantityUsed = int(order["quantity"].(float64))
+	}
+	switch msg.TopicPartition.Partition {
+	case CREATED:
+		var product model.Product
+		database.Product.ProductColl.FindOne(context.TODO(), bson.D{{Key: "_id", Value: productID}}).Decode(&product)
+		database.Product.ProductColl.FindOneAndUpdate(context.TODO(), bson.D{{Key: "_id", Value: productID}}, bson.M{"$set": bson.M{"quantity": product.Quantity - quantityUsed}})
+		log.Printf("Consumed new product %s", productID)
 	}
 
 }

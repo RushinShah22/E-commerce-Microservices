@@ -29,17 +29,8 @@ func CreateProduct(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(newProduct)
 
 	// Produce message in Go routine
-	productProduce := struct {
-		ProductID primitive.ObjectID `bson:"productID,omitempty" json:"productID,omitempty" `
-		Name      string             `bson:"name,omitempty" json:"name,omitempty"`
-		Quantity  int                `bson:"quantity,omitempty" json:"quantity,omitempty"`
-	}{
-		ProductID: newProduct.ID,
-		Name:      newProduct.Name,
-		Quantity:  newProduct.Quantity,
-	}
 
-	go producers.ProduceMessage(productProduce, producers.CREATED)
+	go producers.ProduceMessage(newProduct, producers.CREATED)
 }
 
 func GetAllProducts(w http.ResponseWriter, r *http.Request) {

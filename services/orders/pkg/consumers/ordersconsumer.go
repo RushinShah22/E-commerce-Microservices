@@ -19,28 +19,26 @@ const (
 	UPDATED
 )
 
-var Order *kafka.Consumer
-
 func SetupConsumer(groupID string, topics []string, topicPartition *[]kafka.TopicPartition, callback func(*kafka.Message)) {
 	var err error
-	Order, err = kafka.NewConsumer(&kafka.ConfigMap{"bootstrap.servers": "kafka1:19092", "group.id": groupID, "auto.offset.reset": "smallest"})
+	Consumer, err := kafka.NewConsumer(&kafka.ConfigMap{"bootstrap.servers": "kafka1:19092", "group.id": groupID, "auto.offset.reset": "smallest"})
 
 	if err != nil {
 		panic(err)
 	}
 
-	err = Order.SubscribeTopics(topics, nil)
+	err = Consumer.SubscribeTopics(topics, nil)
 
 	if err != nil {
 		panic(err)
 	}
-	err = Order.Assign(*topicPartition)
+	err = Consumer.Assign(*topicPartition)
 	if err != nil {
 		panic(err)
 	}
 
 	for {
-		ev := Order.Poll(100)
+		ev := Consumer.Poll(100)
 		switch e := ev.(type) {
 		case *kafka.Message:
 			go callback(e)
@@ -55,27 +53,43 @@ func SetupConsumer(groupID string, topics []string, topicPartition *[]kafka.Topi
 }
 
 func ProductsCallback(msg *kafka.Message) {
-	var data model.Catalog
-	err := json.Unmarshal(msg.Value, &data)
+	var productJson interface{}
+
+	err := json.Unmarshal(msg.Value, &productJson)
 	if err != nil {
 		panic(err)
 	}
+
+	var product model.Catalog
+	if data, ok := productJson.(map[string]interface{}); ok {
+		fmt.Println(data["_id"])
+		data["productID"] = data["_id"]
+		data["_id"] = ""
+		dataJson, err := json.Marshal(data)
+
+		if err != nil {
+			panic(err)
+		}
+		json.Unmarshal(dataJson, &product)
+	} else {
+		panic(ok)
+	}
+
 	switch msg.TopicPartition.Partition {
 	case CREATED:
-		insertedData, err := database.Order.CatalogColl.InsertOne(context.Background(), data)
+		insertedData, err := database.Order.CatalogColl.InsertOne(context.Background(), product)
 		if err != nil {
 			panic(err)
 		}
 		log.Printf("Consumed new product %s", insertedData.InsertedID)
 	case UPDATED:
-		database.Order.CatalogColl.FindOneAndReplace(context.TODO(), bson.D{{Key: "productID", Value: data.ProductID}}, data, options.FindOneAndReplace().SetReturnDocument(options.After))
-		log.Printf("Consumed Updated product %s", data.ProductID)
+		database.Order.CatalogColl.FindOneAndReplace(context.TODO(), bson.D{{Key: "productID", Value: product.ProductID}}, product, options.FindOneAndReplace().SetReturnDocument(options.After))
+		log.Printf("Consumed Updated product %s", product.ProductID)
 	}
 
 }
 
 func UserCallback(msg *kafka.Message) {
-	fmt.Println("yess")
 	var userJson interface{}
 	err := json.Unmarshal(msg.Value, &userJson)
 
