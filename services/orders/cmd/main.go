@@ -29,6 +29,7 @@ func main() {
 
 	database.ConnToDB(uri)
 	defer database.Order.Client.Disconnect(context.TODO())
+
 	// Create the entry point
 	root := chi.NewRouter()
 
@@ -42,12 +43,18 @@ func main() {
 		r.Get("/{id}", controllers.GetAOrder)
 	})
 
-	topic := "products"
-	go consumer.SetupConsumer("products", []string{"products"}, &[]kafka.TopicPartition{
-		{Topic: &topic, Partition: consumer.CREATED},
-	})
+	// Setup CONSUMERS
+	// When orders microservice created a order.
+	productTopic := "products"
+	go consumer.SetupConsumer("products", []string{"products"}, &[]kafka.TopicPartition{{Topic: &productTopic, Partition: consumer.CREATED}}, consumer.ProductsCallback)
 
+	// when a new user is created
+	userTopic := "users"
+	go consumer.SetupConsumer("users", []string{"users"}, &[]kafka.TopicPartition{{Topic: &userTopic, Partition: consumer.CREATED}}, consumer.UserCallback)
+
+	// Setup PRODUCERS for products
 	go producers.SetupProducer()
+
 	// start server
 	log.Printf("Server started on %s", port)
 	if err := http.ListenAndServe(":"+port, root); err != nil {

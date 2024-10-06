@@ -7,4 +7,5 @@ type User struct {
 	UserID    primitive.ObjectID `bson:"userID,omitempty" json:"userID,omitempty"`
 	FirstName string             `bson:"firstName,omitempty" json:"firstName,omitempty"`
 	LastName  string             `bson:"lastName,omitempty" json:"lastName,omitempty"`
+	Role      string             `bson:"role,omitempty" json:"role,omitempty"`
 }

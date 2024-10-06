@@ -74,7 +74,6 @@ func AddAUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(user)
 
 	// Producing user
-
 	go producers.ProduceMessage(user, producers.CREATED)
 
 }
