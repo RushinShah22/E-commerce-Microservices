@@ -11,12 +11,16 @@ WORKDIR /app
 
 COPY go.mod ./
 COPY go.sum ./
+
+RUN go mod download
+
+
 COPY .env ./
 COPY cmd   ./cmd
 COPY pkg ./pkg
 
 
-RUN CGO_ENABLED=1 go build -a -tags netgo,osusergo,musl \
+RUN CGO_ENABLED=1 go build -tags musl \
     -ldflags "-extldflags '-static' -s -w" \
     -o products-micro ./cmd
 

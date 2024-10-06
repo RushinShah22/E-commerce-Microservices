@@ -51,8 +51,8 @@ func main() {
 	go consumer.SetupConsumer("orders", []string{"orders"}, &[]kafka.TopicPartition{{Topic: &orderTopic, Partition: consumer.CREATED}}, consumer.OrderCallback)
 
 	// Consumer for new Seller created
-	// sellerTopics := "users"
-	// go consumer.SetupConsumer("users", []string{"users"}, &[]kafka.TopicPartition{{Topic: &sellerTopics, Partition: consumer.CREATED}}, consumer.OrderCallback)
+	sellerTopics := "users"
+	go consumer.SetupConsumer("sellers", []string{"users"}, &[]kafka.TopicPartition{{Topic: &sellerTopics, Partition: consumer.CREATED}}, consumer.UserCallback)
 
 	// Create Producer
 	producers.SetupProducer()

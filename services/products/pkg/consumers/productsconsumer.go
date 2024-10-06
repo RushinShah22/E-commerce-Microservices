@@ -18,28 +18,26 @@ const (
 	CREATED = iota
 )
 
-var Order *kafka.Consumer
-
 func SetupConsumer(groupID string, topics []string, topicPartition *[]kafka.TopicPartition, callback func(*kafka.Message)) {
 	var err error
-	Order, err = kafka.NewConsumer(&kafka.ConfigMap{"bootstrap.servers": "kafka1:19092", "group.id": groupID, "auto.offset.reset": "smallest"})
+	Consumer, err := kafka.NewConsumer(&kafka.ConfigMap{"bootstrap.servers": "kafka1:19092", "group.id": groupID, "auto.offset.reset": "smallest"})
 
 	if err != nil {
 		panic(err)
 	}
 
-	err = Order.SubscribeTopics(topics, nil)
+	err = Consumer.SubscribeTopics(topics, nil)
 
 	if err != nil {
 		panic(err)
 	}
-	err = Order.Assign(*topicPartition)
+	err = Consumer.Assign(*topicPartition)
 	if err != nil {
 		panic(err)
 	}
 
 	for {
-		ev := Order.Poll(100)
+		ev := Consumer.Poll(100)
 		switch e := ev.(type) {
 		case *kafka.Message:
 			// application-specific processing
@@ -77,4 +75,30 @@ func OrderCallback(msg *kafka.Message) {
 		log.Printf("Consumed new product %s", productID)
 	}
 
+}
+
+func UserCallback(msg *kafka.Message) {
+	var userJson interface{}
+	json.Unmarshal(msg.Value, &userJson)
+	fmt.Println("YESSS")
+	var seller model.Seller
+	if data, ok := userJson.(map[string]interface{}); ok {
+
+		if data["role"] != "seller" {
+			return
+		}
+		data["userID"], _ = primitive.ObjectIDFromHex(data["_id"].(string))
+		data["_id"] = ""
+
+		tmpJson, _ := json.Marshal(data)
+		json.Unmarshal(tmpJson, &seller)
+	}
+
+	insertedData, err := database.Product.SellerColl.InsertOne(context.Background(), seller)
+
+	if err != nil {
+		panic(err)
+	}
+	seller.ID = insertedData.InsertedID.(primitive.ObjectID)
+	log.Printf("Consumed a new seller in products %s\n", seller.ID)
 }
