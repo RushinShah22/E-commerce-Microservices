@@ -1,0 +1,60 @@
+type Query {
+  users: [User!]!
+  user(id: ID!): User!
+  products: [Product!]!
+  product(id: ID!): Product!
+  orders: [Order!]!
+  order(id: ID!): Order!
+}
+
+type Mutation {
+  registerUser(input: RegisterInput): User!
+  createProduct(input: ProductInput): Product!
+  placeOrder(input: OrderInput): Order!
+}
+
+type User {
+  id: ID!
+  firstName: String!
+  lastName: String!
+  email: String!
+  role: String!
+}
+
+type Product {
+  id: ID!
+  name: String!
+  quantity: Int!
+  sellerID: ID!
+  sellerFirstName: String!
+  sellerLastName: String!
+}
+
+type Order {
+  id: ID!
+  userID: ID!
+  quantity: Int!
+  userFirstName: String!
+  userLastName: String!
+  role: String!
+}
+
+input RegisterInput {
+  firstName: String!
+  lastName: String!
+  email: String!
+  password: String!
+  role: String!
+}
+
+input ProductInput {
+  name: String!
+  quantity: Int!
+  sellerID: ID!
+}
+
+input OrderInput {
+  userID: ID!
+  productID: ID!
+  quantity: Int!
+}
