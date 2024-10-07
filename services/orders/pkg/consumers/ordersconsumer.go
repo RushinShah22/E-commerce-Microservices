@@ -62,7 +62,6 @@ func ProductsCallback(msg *kafka.Message) {
 
 	var product model.Catalog
 	if data, ok := productJson.(map[string]interface{}); ok {
-		fmt.Println(data["_id"])
 		data["productID"] = data["_id"]
 		data["_id"] = ""
 		dataJson, err := json.Marshal(data)

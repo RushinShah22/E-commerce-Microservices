@@ -24,8 +24,8 @@ func CreateProduct(w http.ResponseWriter, r *http.Request) {
 	}
 	newProduct.ID = insertedPro.InsertedID.(primitive.ObjectID)
 
-	w.WriteHeader(http.StatusCreated)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(newProduct)
 
 	// Produce message in Go routine
@@ -88,14 +88,5 @@ func UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(updatedProduct)
 
 	// Produce message in Go routine
-	productProduce := struct {
-		ProductID primitive.ObjectID `bson:"productID,omitempty" json:"productID,omitempty" `
-		Name      string             `bson:"name,omitempty" json:"name,omitempty"`
-		Quantity  int                `bson:"quantity,omitempty" json:"quantity,omitempty"`
-	}{
-		ProductID: updatedProduct.ID,
-		Name:      updatedProduct.Name,
-		Quantity:  updatedProduct.Quantity,
-	}
-	go producers.ProduceMessage(productProduce, producers.UPDATED)
+	go producers.ProduceMessage(updatedProduct, producers.UPDATED)
 }
