@@ -1,4 +1,4 @@
-all: setup broker-micro products-micro orders-micro users-micro
+all: setup broker-micro products-micro orders-micro users-micro server
 
 products-micro: 
 	cd ./services/products && \
@@ -36,6 +36,14 @@ stop-services:
 	docker compose down
 	cd ./services/users && \
 	docker compose down
+	cd ./gateway && \
+	docker compose down
+
+server:
+	cd ./gateway && \
+	docker compose down && \
+	docker compose build && \
+	docker compose up -d
 
 setup:
 	bash ./setup.sh

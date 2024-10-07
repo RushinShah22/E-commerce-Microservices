@@ -87,8 +87,8 @@ func UserCallback(msg *kafka.Message) {
 		if data["role"] != "seller" {
 			return
 		}
-		data["userID"], _ = primitive.ObjectIDFromHex(data["_id"].(string))
-		data["_id"] = ""
+		data["userID"], _ = primitive.ObjectIDFromHex(data["id"].(string))
+		data["id"] = ""
 
 		tmpJson, _ := json.Marshal(data)
 		json.Unmarshal(tmpJson, &seller)

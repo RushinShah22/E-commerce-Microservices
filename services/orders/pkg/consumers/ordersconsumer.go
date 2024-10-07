@@ -62,8 +62,8 @@ func ProductsCallback(msg *kafka.Message) {
 
 	var product model.Catalog
 	if data, ok := productJson.(map[string]interface{}); ok {
-		data["productID"] = data["_id"]
-		data["_id"] = ""
+		data["productID"] = data["id"]
+		data["id"] = ""
 		dataJson, err := json.Marshal(data)
 
 		if err != nil {
@@ -98,8 +98,8 @@ func UserCallback(msg *kafka.Message) {
 	var user model.User
 
 	if data, ok := userJson.(map[string]interface{}); ok {
-		data["userID"] = data["_id"]
-		data["_id"] = ""
+		data["userID"] = data["id"]
+		data["id"] = ""
 		tmpJson, err := json.Marshal(data)
 		if err != nil {
 			panic(err)

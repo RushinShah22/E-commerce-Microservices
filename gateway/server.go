@@ -8,20 +8,26 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/RushinShah22/e-commerce-micro/gateway/graph"
+	"github.com/joho/godotenv"
 )
 
 const defaultPort = "8080"
 
 func main() {
+	err := godotenv.Load()
+
+	if err != nil {
+		panic(err)
+	}
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = defaultPort
 	}
 
 	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{
-		UserURL:    "users/users",
-		ProductURL: "products/products",
-		OrderURL:   "orders/orders",
+		UserURL:    "http://users:3000/users",
+		ProductURL: "http://products:4000/products",
+		OrderURL:   "http://orders:8000/orders",
 	}}))
 
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
