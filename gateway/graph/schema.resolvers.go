@@ -48,12 +48,60 @@ func (r *mutationResolver) RegisterUser(ctx context.Context, input *model.Regist
 
 // CreateProduct is the resolver for the createProduct field.
 func (r *mutationResolver) CreateProduct(ctx context.Context, input *model.ProductInput) (*model.Product, error) {
-	panic(fmt.Errorf("not implemented: CreateProduct - createProduct"))
+	data, err := json.Marshal(input)
+
+	if err != nil {
+		panic(err)
+	}
+
+	productReader := bytes.NewReader(data)
+
+	req, err := http.NewRequest(http.MethodPost, r.ProductURL, productReader)
+
+	req.Header.Set("Content-Type", "application/json")
+
+	client := http.Client{
+		Timeout: 30 * time.Second,
+	}
+
+	resp, err := client.Do(req)
+
+	if err != nil {
+		panic(err)
+	}
+
+	var product *model.Product
+	json.NewDecoder(resp.Body).Decode(&product)
+	return product, nil
 }
 
 // PlaceOrder is the resolver for the placeOrder field.
 func (r *mutationResolver) PlaceOrder(ctx context.Context, input *model.OrderInput) (*model.Order, error) {
-	panic(fmt.Errorf("not implemented: PlaceOrder - placeOrder"))
+	data, err := json.Marshal(input)
+
+	if err != nil {
+		panic(err)
+	}
+
+	orderReader := bytes.NewReader(data)
+
+	req, err := http.NewRequest(http.MethodPost, r.OrderURL, orderReader)
+
+	req.Header.Set("Content-Type", "application/json")
+
+	client := http.Client{
+		Timeout: 30 * time.Second,
+	}
+
+	resp, err := client.Do(req)
+
+	if err != nil {
+		panic(err)
+	}
+
+	var order *model.Order
+	json.NewDecoder(resp.Body).Decode(&order)
+	return order, nil
 }
 
 // Users is the resolver for the users field.
