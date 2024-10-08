@@ -2,9 +2,9 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	database "github.com/RushinShah22/e-commerce-micro/services/users/pkg/database"
 	model "github.com/RushinShah22/e-commerce-micro/services/users/pkg/models"
@@ -54,14 +54,20 @@ func GetAUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func AddAUser(w http.ResponseWriter, r *http.Request) {
-
-	fmt.Println("YESS")
 	var user model.User
 	err := json.NewDecoder(r.Body).Decode(&user)
 
 	if err != nil {
 		panic(err)
 	}
+
+	user.Password, err = HashPassword(user.Password)
+
+	if err != nil {
+		http.Error(w, "Something went wrong.", http.StatusInternalServerError)
+		panic(err)
+	}
+	user.CreatedAt = primitive.NewDateTimeFromTime(time.Now())
 
 	newUser, err := database.User.UserColl.InsertOne(r.Context(), user)
 
