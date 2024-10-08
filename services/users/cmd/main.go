@@ -33,6 +33,7 @@ func main() {
 		r.Get("/", controllers.GetAllUser)
 		r.Get("/{id}", controllers.GetAUser)
 		r.Post("/", controllers.AddAUser)
+		r.Post("/verify", controllers.VerifyUser)
 	})
 
 	// Setup up producers
