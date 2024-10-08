@@ -26,8 +26,8 @@ func main() {
 
 	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{
 		UserURL:    "http://users:3000/users",
-		ProductURL: "http://products:4000/products",
-		OrderURL:   "http://orders:8000/orders",
+		ProductURL: "http://products:8000/products",
+		OrderURL:   "http://orders:4000/orders",
 	}}))
 
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))

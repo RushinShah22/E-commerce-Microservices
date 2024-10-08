@@ -17,7 +17,6 @@ COPY ./ ./
 
 
 RUN CGO_ENABLED=0 go build \
-    -ldflags "-extldflags '-static' -s -w" \
     -o gateway ./
 
 FROM busybox:musl

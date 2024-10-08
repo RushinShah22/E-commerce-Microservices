@@ -32,6 +32,8 @@ type Product {
 
 type Order {
   id: ID!
+  productID: ID!
+  productName: String!
   userID: ID!
   quantity: Int!
   userFirstName: String!

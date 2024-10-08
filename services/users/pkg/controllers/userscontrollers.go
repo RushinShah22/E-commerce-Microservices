@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -54,9 +55,9 @@ func GetAUser(w http.ResponseWriter, r *http.Request) {
 
 func AddAUser(w http.ResponseWriter, r *http.Request) {
 
+	fmt.Println("YESS")
 	var user model.User
-	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&user)
+	err := json.NewDecoder(r.Body).Decode(&user)
 
 	if err != nil {
 		panic(err)
