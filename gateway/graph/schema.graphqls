@@ -1,16 +1,25 @@
+directive @auth on FIELD_DEFINITION
+directive @hasRole(role: Role!) on FIELD_DEFINITION
+
+enum Role {
+  admin
+  user
+  seller
+}
+
 type Query {
   users: [User!]!
-  user(id: ID!): User!
+  user(id: ID!): User! @auth
   products: [Product!]!
   product(id: ID!): Product!
   orders: [Order!]!
-  order(id: ID!): Order!
+  order(id: ID!): Order! @auth
 }
 
 type Mutation {
   registerUser(input: RegisterInput): User!
-  createProduct(input: ProductInput): Product!
-  placeOrder(input: OrderInput): Order!
+  createProduct(input: ProductInput): Product! @auth @hasRole(role: admin)
+  placeOrder(input: OrderInput): Order! @auth
 }
 
 type User {
