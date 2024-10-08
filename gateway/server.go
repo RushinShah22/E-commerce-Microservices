@@ -44,12 +44,15 @@ func main() {
 
 		token := header[1]
 
-		err = graph.VerifyToken(token)
+		fieldCtx := graphql.GetFieldContext(ctx)
+		id := fieldCtx.Args["id"].(string)
+		err = graph.VerifyToken(token, id)
 
 		if err != nil {
 			return nil, fmt.Errorf("Invalid access token. Please sign in again.")
 		}
 
+		ctx = context.WithValue(ctx, "id", id)
 		return next(ctx)
 
 	}
@@ -68,7 +71,10 @@ func main() {
 	srv := handler.NewDefaultServer(graph.NewExecutableSchema(c))
 
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
-	http.Handle("/query", srv)
+	http.Handle("/query", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := context.WithValue(r.Context(), "writer", w) // Add the ResponseWriter to context
+		srv.ServeHTTP(w, r.WithContext(ctx))
+	}))
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))

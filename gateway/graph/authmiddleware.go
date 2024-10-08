@@ -2,6 +2,8 @@ package graph
 
 import (
 	"errors"
+	"fmt"
+	"log"
 	"os"
 	"time"
 
@@ -16,24 +18,26 @@ func GenerateToken(id string) (string, error) {
 		"iat": time.Now().Unix(),
 	})
 	key := os.Getenv("JWT_KEY")
-	token, err := claims.SignedString(key)
+	token, err := claims.SignedString([]byte(key))
 	if err != nil {
 		return "", err
 	}
 	return token, nil
 }
 
-func VerifyToken(token string) error {
+func VerifyToken(token string, id string) error {
 	key := os.Getenv("JWT_KEY")
+
 	t, err := jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
-		return interface{}(key), nil
+		return []byte(key), nil
 	})
 
 	if err != nil {
+		log.Panic(err)
 		return err
 	}
-
-	if !t.Valid {
+	claims, ok := t.Claims.(jwt.MapClaims)
+	if !ok || !t.Valid || id != claims["id"] {
 		return errors.New("Invalid JWT.")
 	}
 	return nil

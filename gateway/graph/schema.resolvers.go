@@ -103,6 +103,45 @@ func (r *mutationResolver) PlaceOrder(ctx context.Context, input *model.OrderInp
 	return order, nil
 }
 
+// Login is the resolver for the login field.
+func (r *mutationResolver) Login(ctx context.Context, input *model.LoginInput) (*model.User, error) {
+	jsonData, err := json.Marshal(input)
+
+	if err != nil {
+		return nil, fmt.Errorf("Something went wrong.")
+	}
+	data := bytes.NewReader(jsonData)
+	req, err := http.NewRequest(http.MethodPost, r.UserURL+"/"+"verify", data)
+
+	if err != nil {
+		return nil, fmt.Errorf("Something went wrong.")
+	}
+
+	client := http.Client{
+		Timeout: time.Second * 30,
+	}
+	resp, err := client.Do(req)
+
+	if err != nil {
+		return nil, err
+	}
+	var user model.User
+
+	json.NewDecoder(resp.Body).Decode(&user)
+
+	token, err := GenerateToken(user.ID)
+
+	if err != nil {
+		fmt.Println(err)
+		return nil, fmt.Errorf("Something went wrong.")
+	}
+
+	c := ctx.Value("writer").(http.ResponseWriter)
+	c.Header().Set("token", token)
+
+	return &user, nil
+}
+
 // Users is the resolver for the users field.
 func (r *queryResolver) Users(ctx context.Context) ([]*model.User, error) {
 	resp, err := http.Get(r.UserURL)
@@ -119,7 +158,6 @@ func (r *queryResolver) Users(ctx context.Context) ([]*model.User, error) {
 // User is the resolver for the user field.
 func (r *queryResolver) User(ctx context.Context, id string) (*model.User, error) {
 	resp, err := http.Get(r.UserURL + "/" + id)
-
 	if err != nil {
 		panic(err)
 	}

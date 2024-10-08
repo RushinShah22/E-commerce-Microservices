@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"encoding/json"
-	"errors"
 	"log"
 	"net/http"
 	"time"
@@ -13,30 +12,12 @@ import (
 	"github.com/go-chi/chi/v5"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
-
-type UserResponse struct {
-	Message  string      `json:"message,omitempty"`
-	Status   string      `json:"status,omitempty"`
-	Data     interface{} `json:"data,omitempty"`
-	Err      error       `json:"err,omitempty"`
-	Verified bool        `json:"verified,omitempty"`
-}
-
-type UserResponseInterface interface {
-	UserResponse
-	String() string
-}
-
-func (res *UserResponse) String() string {
-	jsonResponse, _ := json.Marshal(res)
-	return string(jsonResponse)
-
-}
 
 func GetAllUser(w http.ResponseWriter, r *http.Request) {
 
-	cursor, err := database.User.UserColl.Find(r.Context(), bson.M{})
+	cursor, err := database.User.UserColl.Find(r.Context(), bson.M{}, options.Find().SetProjection(bson.D{{Key: "password", Value: 0}, {Key: "createdAt", Value: 0}}))
 
 	if err != nil {
 		log.Println(err)
@@ -51,6 +32,7 @@ func GetAllUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
@@ -65,7 +47,7 @@ func GetAUser(w http.ResponseWriter, r *http.Request) {
 
 	var user model.User
 
-	database.User.UserColl.FindOne(r.Context(), bson.D{{Key: "_id", Value: id}}).Decode(&user)
+	database.User.UserColl.FindOne(r.Context(), bson.D{{Key: "_id", Value: id}}, options.FindOne().SetProjection(bson.D{{Key: "password", Value: 0}, {Key: "createdAt", Value: 0}})).Decode(&user)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
@@ -111,14 +93,8 @@ func VerifyUser(w http.ResponseWriter, r *http.Request) {
 	var user model.User
 	err := json.NewDecoder(r.Body).Decode(&user)
 
-	var response UserResponse
-
 	if err != nil {
-		response.Err = err
-		response.Message = "Something went wrong."
-		response.Status = "fail"
-
-		http.Error(w, response.String(), http.StatusInternalServerError)
+		http.Error(w, "Something went wrong.", http.StatusInternalServerError)
 		panic(err)
 	}
 
@@ -127,39 +103,33 @@ func VerifyUser(w http.ResponseWriter, r *http.Request) {
 
 	err = database.User.UserColl.FindOne(r.Context(), bson.D{{Key: "email", Value: email}}).Decode(&user)
 
+	log.Printf("%#v", user)
 	if err != nil {
-		response.Err = err
-		response.Message = "Can't process your request at this moment."
-		response.Status = "fail"
 
-		http.Error(w, response.String(), http.StatusInternalServerError)
+		http.Error(w, "Can't process your request at this moment.", http.StatusInternalServerError)
 		log.Printf("Unsuccessful Login: %s\n", err)
 		return
 	}
 
 	if user.ID == primitive.NilObjectID {
-		response.Err = err
-		response.Message = "No user found with the provided email id."
-		response.Status = "fail"
 
-		http.Error(w, response.String(), http.StatusBadRequest)
+		http.Error(w, "No user found with the provided email id.", http.StatusBadRequest)
 		log.Printf("No user found error %s", email)
 		return
 	}
 
 	if ok := CheckPasswordHash(password, user.Password); !ok {
-		response.Err = errors.New("Authentication Failed.")
-		response.Message = "Email or Password is wrong."
-		response.Status = "fail"
 
-		http.Error(w, response.String(), http.StatusBadRequest)
+		http.Error(w, "E-mail or passwor is incorrect. Please try again.", http.StatusBadRequest)
 		log.Printf("Unsuccessful Login %s\n", user.ID)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
-	response.Message = "Login successful."
-	response.Verified = true
-	response.Status = "success"
 
-	json.NewEncoder(w).Encode(response)
+	// removing security concered details
+	user.Password = ""
+	user.CreatedAt = 0
+
+	w.WriteHeader(http.StatusOK)
+
+	json.NewEncoder(w).Encode(user)
 }
