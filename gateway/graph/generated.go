@@ -50,10 +50,10 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Mutation struct {
-		CreateProduct func(childComplexity int, input *model.ProductInput) int
+		CreateProduct func(childComplexity int, input model.ProductInput, id string) int
 		Login         func(childComplexity int, input *model.LoginInput) int
-		PlaceOrder    func(childComplexity int, input *model.OrderInput) int
-		RegisterUser  func(childComplexity int, input *model.RegisterInput) int
+		PlaceOrder    func(childComplexity int, input model.OrderInput, id string) int
+		RegisterUser  func(childComplexity int, input model.RegisterInput) int
 	}
 
 	Order struct {
@@ -95,9 +95,9 @@ type ComplexityRoot struct {
 }
 
 type MutationResolver interface {
-	RegisterUser(ctx context.Context, input *model.RegisterInput) (*model.User, error)
-	CreateProduct(ctx context.Context, input *model.ProductInput) (*model.Product, error)
-	PlaceOrder(ctx context.Context, input *model.OrderInput) (*model.Order, error)
+	RegisterUser(ctx context.Context, input model.RegisterInput) (*model.User, error)
+	CreateProduct(ctx context.Context, input model.ProductInput, id string) (*model.Product, error)
+	PlaceOrder(ctx context.Context, input model.OrderInput, id string) (*model.Order, error)
 	Login(ctx context.Context, input *model.LoginInput) (*model.User, error)
 }
 type QueryResolver interface {
@@ -138,7 +138,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateProduct(childComplexity, args["input"].(*model.ProductInput)), true
+		return e.complexity.Mutation.CreateProduct(childComplexity, args["input"].(model.ProductInput), args["id"].(string)), true
 
 	case "Mutation.login":
 		if e.complexity.Mutation.Login == nil {
@@ -162,7 +162,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.PlaceOrder(childComplexity, args["input"].(*model.OrderInput)), true
+		return e.complexity.Mutation.PlaceOrder(childComplexity, args["input"].(model.OrderInput), args["id"].(string)), true
 
 	case "Mutation.registerUser":
 		if e.complexity.Mutation.RegisterUser == nil {
@@ -174,7 +174,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.RegisterUser(childComplexity, args["input"].(*model.RegisterInput)), true
+		return e.complexity.Mutation.RegisterUser(childComplexity, args["input"].(model.RegisterInput)), true
 
 	case "Order.id":
 		if e.complexity.Order.ID == nil {
@@ -534,18 +534,36 @@ func (ec *executionContext) field_Mutation_createProduct_args(ctx context.Contex
 		return nil, err
 	}
 	args["input"] = arg0
+	arg1, err := ec.field_Mutation_createProduct_argsID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg1
 	return args, nil
 }
 func (ec *executionContext) field_Mutation_createProduct_argsInput(
 	ctx context.Context,
 	rawArgs map[string]interface{},
-) (*model.ProductInput, error) {
+) (model.ProductInput, error) {
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 	if tmp, ok := rawArgs["input"]; ok {
-		return ec.unmarshalOProductInput2ᚖgithubᚗcomᚋRushinShah22ᚋeᚑcommerceᚑmicroᚋgatewayᚋgraphᚋmodelᚐProductInput(ctx, tmp)
+		return ec.unmarshalNProductInput2githubᚗcomᚋRushinShah22ᚋeᚑcommerceᚑmicroᚋgatewayᚋgraphᚋmodelᚐProductInput(ctx, tmp)
 	}
 
-	var zeroVal *model.ProductInput
+	var zeroVal model.ProductInput
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_createProduct_argsID(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (string, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+	if tmp, ok := rawArgs["id"]; ok {
+		return ec.unmarshalNID2string(ctx, tmp)
+	}
+
+	var zeroVal string
 	return zeroVal, nil
 }
 
@@ -580,18 +598,36 @@ func (ec *executionContext) field_Mutation_placeOrder_args(ctx context.Context, 
 		return nil, err
 	}
 	args["input"] = arg0
+	arg1, err := ec.field_Mutation_placeOrder_argsID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg1
 	return args, nil
 }
 func (ec *executionContext) field_Mutation_placeOrder_argsInput(
 	ctx context.Context,
 	rawArgs map[string]interface{},
-) (*model.OrderInput, error) {
+) (model.OrderInput, error) {
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 	if tmp, ok := rawArgs["input"]; ok {
-		return ec.unmarshalOOrderInput2ᚖgithubᚗcomᚋRushinShah22ᚋeᚑcommerceᚑmicroᚋgatewayᚋgraphᚋmodelᚐOrderInput(ctx, tmp)
+		return ec.unmarshalNOrderInput2githubᚗcomᚋRushinShah22ᚋeᚑcommerceᚑmicroᚋgatewayᚋgraphᚋmodelᚐOrderInput(ctx, tmp)
 	}
 
-	var zeroVal *model.OrderInput
+	var zeroVal model.OrderInput
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_placeOrder_argsID(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (string, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+	if tmp, ok := rawArgs["id"]; ok {
+		return ec.unmarshalNID2string(ctx, tmp)
+	}
+
+	var zeroVal string
 	return zeroVal, nil
 }
 
@@ -608,13 +644,13 @@ func (ec *executionContext) field_Mutation_registerUser_args(ctx context.Context
 func (ec *executionContext) field_Mutation_registerUser_argsInput(
 	ctx context.Context,
 	rawArgs map[string]interface{},
-) (*model.RegisterInput, error) {
+) (model.RegisterInput, error) {
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 	if tmp, ok := rawArgs["input"]; ok {
-		return ec.unmarshalORegisterInput2ᚖgithubᚗcomᚋRushinShah22ᚋeᚑcommerceᚑmicroᚋgatewayᚋgraphᚋmodelᚐRegisterInput(ctx, tmp)
+		return ec.unmarshalNRegisterInput2githubᚗcomᚋRushinShah22ᚋeᚑcommerceᚑmicroᚋgatewayᚋgraphᚋmodelᚐRegisterInput(ctx, tmp)
 	}
 
-	var zeroVal *model.RegisterInput
+	var zeroVal model.RegisterInput
 	return zeroVal, nil
 }
 
@@ -778,7 +814,7 @@ func (ec *executionContext) _Mutation_registerUser(ctx context.Context, field gr
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RegisterUser(rctx, fc.Args["input"].(*model.RegisterInput))
+		return ec.resolvers.Mutation().RegisterUser(rctx, fc.Args["input"].(model.RegisterInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -846,17 +882,10 @@ func (ec *executionContext) _Mutation_createProduct(ctx context.Context, field g
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().CreateProduct(rctx, fc.Args["input"].(*model.ProductInput))
+			return ec.resolvers.Mutation().CreateProduct(rctx, fc.Args["input"].(model.ProductInput), fc.Args["id"].(string))
 		}
 
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.Auth == nil {
-				var zeroVal *model.Product
-				return zeroVal, errors.New("directive auth is not implemented")
-			}
-			return ec.directives.Auth(ctx, nil, directive0)
-		}
-		directive2 := func(ctx context.Context) (interface{}, error) {
 			role, err := ec.unmarshalNRole2githubᚗcomᚋRushinShah22ᚋeᚑcommerceᚑmicroᚋgatewayᚋgraphᚋmodelᚐRole(ctx, "admin")
 			if err != nil {
 				var zeroVal *model.Product
@@ -866,7 +895,14 @@ func (ec *executionContext) _Mutation_createProduct(ctx context.Context, field g
 				var zeroVal *model.Product
 				return zeroVal, errors.New("directive hasRole is not implemented")
 			}
-			return ec.directives.HasRole(ctx, nil, directive1, role)
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+		directive2 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Auth == nil {
+				var zeroVal *model.Product
+				return zeroVal, errors.New("directive auth is not implemented")
+			}
+			return ec.directives.Auth(ctx, nil, directive1)
 		}
 
 		tmp, err := directive2(rctx)
@@ -949,7 +985,7 @@ func (ec *executionContext) _Mutation_placeOrder(ctx context.Context, field grap
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().PlaceOrder(rctx, fc.Args["input"].(*model.OrderInput))
+			return ec.resolvers.Mutation().PlaceOrder(rctx, fc.Args["input"].(model.OrderInput), fc.Args["id"].(string))
 		}
 
 		directive1 := func(ctx context.Context) (interface{}, error) {
@@ -1787,14 +1823,26 @@ func (ec *executionContext) _Query_user(ctx context.Context, field graphql.Colle
 		}
 
 		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋRushinShah22ᚋeᚑcommerceᚑmicroᚋgatewayᚋgraphᚋmodelᚐRole(ctx, "admin")
+			if err != nil {
+				var zeroVal *model.User
+				return zeroVal, err
+			}
+			if ec.directives.HasRole == nil {
+				var zeroVal *model.User
+				return zeroVal, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+		directive2 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.Auth == nil {
 				var zeroVal *model.User
 				return zeroVal, errors.New("directive auth is not implemented")
 			}
-			return ec.directives.Auth(ctx, nil, directive0)
+			return ec.directives.Auth(ctx, nil, directive1)
 		}
 
-		tmp, err := directive1(rctx)
+		tmp, err := directive2(rctx)
 		if err != nil {
 			return nil, graphql.ErrorOnPath(ctx, err)
 		}
@@ -5320,6 +5368,11 @@ func (ec *executionContext) marshalNOrder2ᚖgithubᚗcomᚋRushinShah22ᚋeᚑc
 	return ec._Order(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNOrderInput2githubᚗcomᚋRushinShah22ᚋeᚑcommerceᚑmicroᚋgatewayᚋgraphᚋmodelᚐOrderInput(ctx context.Context, v interface{}) (model.OrderInput, error) {
+	res, err := ec.unmarshalInputOrderInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalNProduct2githubᚗcomᚋRushinShah22ᚋeᚑcommerceᚑmicroᚋgatewayᚋgraphᚋmodelᚐProduct(ctx context.Context, sel ast.SelectionSet, v model.Product) graphql.Marshaler {
 	return ec._Product(ctx, sel, &v)
 }
@@ -5376,6 +5429,16 @@ func (ec *executionContext) marshalNProduct2ᚖgithubᚗcomᚋRushinShah22ᚋe�
 		return graphql.Null
 	}
 	return ec._Product(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNProductInput2githubᚗcomᚋRushinShah22ᚋeᚑcommerceᚑmicroᚋgatewayᚋgraphᚋmodelᚐProductInput(ctx context.Context, v interface{}) (model.ProductInput, error) {
+	res, err := ec.unmarshalInputProductInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNRegisterInput2githubᚗcomᚋRushinShah22ᚋeᚑcommerceᚑmicroᚋgatewayᚋgraphᚋmodelᚐRegisterInput(ctx context.Context, v interface{}) (model.RegisterInput, error) {
+	res, err := ec.unmarshalInputRegisterInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNRole2githubᚗcomᚋRushinShah22ᚋeᚑcommerceᚑmicroᚋgatewayᚋgraphᚋmodelᚐRole(ctx context.Context, v interface{}) (model.Role, error) {
@@ -5745,30 +5808,6 @@ func (ec *executionContext) unmarshalOLoginInput2ᚖgithubᚗcomᚋRushinShah22�
 		return nil, nil
 	}
 	res, err := ec.unmarshalInputLoginInput(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalOOrderInput2ᚖgithubᚗcomᚋRushinShah22ᚋeᚑcommerceᚑmicroᚋgatewayᚋgraphᚋmodelᚐOrderInput(ctx context.Context, v interface{}) (*model.OrderInput, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputOrderInput(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalOProductInput2ᚖgithubᚗcomᚋRushinShah22ᚋeᚑcommerceᚑmicroᚋgatewayᚋgraphᚋmodelᚐProductInput(ctx context.Context, v interface{}) (*model.ProductInput, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputProductInput(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalORegisterInput2ᚖgithubᚗcomᚋRushinShah22ᚋeᚑcommerceᚑmicroᚋgatewayᚋgraphᚋmodelᚐRegisterInput(ctx context.Context, v interface{}) (*model.RegisterInput, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputRegisterInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 

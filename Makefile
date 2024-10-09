@@ -41,6 +41,7 @@ stop-services:
 
 server:
 	cd ./gateway && \
+	go generate ./graph/... && \
 	docker compose down && \
 	docker compose build && \
 	docker compose up -d

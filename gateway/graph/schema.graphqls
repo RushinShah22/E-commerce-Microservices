@@ -3,13 +3,12 @@ directive @hasRole(role: Role!) on FIELD_DEFINITION
 
 enum Role {
   admin
-  user
   seller
+  user
 }
-
 type Query {
   users: [User!]!
-  user(id: ID!): User! @auth
+  user(id: ID!): User! @hasRole(role: admin) @auth
   products: [Product!]!
   product(id: ID!): Product!
   orders: [Order!]!
@@ -17,9 +16,12 @@ type Query {
 }
 
 type Mutation {
-  registerUser(input: RegisterInput): User!
-  createProduct(input: ProductInput): Product! @auth @hasRole(role: admin)
-  placeOrder(input: OrderInput): Order! @auth
+  registerUser(input: RegisterInput!): User!
+  createProduct(input: ProductInput!, id: ID!): Product!
+    @hasRole(role: admin)
+    @auth
+
+  placeOrder(input: OrderInput!, id: ID!): Order! @auth
   login(input: LoginInput): User!
 }
 

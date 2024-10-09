@@ -17,7 +17,7 @@ import (
 )
 
 // RegisterUser is the resolver for the registerUser field.
-func (r *mutationResolver) RegisterUser(ctx context.Context, input *model.RegisterInput) (*model.User, error) {
+func (r *mutationResolver) RegisterUser(ctx context.Context, input model.RegisterInput) (*model.User, error) {
 	data, err := json.Marshal(input)
 
 	if err != nil {
@@ -46,7 +46,7 @@ func (r *mutationResolver) RegisterUser(ctx context.Context, input *model.Regist
 }
 
 // CreateProduct is the resolver for the createProduct field.
-func (r *mutationResolver) CreateProduct(ctx context.Context, input *model.ProductInput) (*model.Product, error) {
+func (r *mutationResolver) CreateProduct(ctx context.Context, input model.ProductInput, id string) (*model.Product, error) {
 	data, err := json.Marshal(input)
 
 	if err != nil {
@@ -75,7 +75,7 @@ func (r *mutationResolver) CreateProduct(ctx context.Context, input *model.Produ
 }
 
 // PlaceOrder is the resolver for the placeOrder field.
-func (r *mutationResolver) PlaceOrder(ctx context.Context, input *model.OrderInput) (*model.Order, error) {
+func (r *mutationResolver) PlaceOrder(ctx context.Context, input model.OrderInput, id string) (*model.Order, error) {
 	data, err := json.Marshal(input)
 
 	if err != nil {
@@ -129,7 +129,7 @@ func (r *mutationResolver) Login(ctx context.Context, input *model.LoginInput) (
 
 	json.NewDecoder(resp.Body).Decode(&user)
 
-	token, err := GenerateToken(user.ID)
+	token, err := GenerateToken(user.ID, user.Role)
 
 	if err != nil {
 		fmt.Println(err)

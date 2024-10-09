@@ -1,7 +1,6 @@
 package graph
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -10,35 +9,41 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func GenerateToken(id string) (string, error) {
+func GenerateToken(id string, role string) (string, error) {
 
 	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"id":  id,
+		"sus": []string{id, role},
 		"exp": time.Now().Add(time.Hour * 24 * 2).Unix(),
 		"iat": time.Now().Unix(),
 	})
 	key := os.Getenv("JWT_KEY")
 	token, err := claims.SignedString([]byte(key))
 	if err != nil {
+		log.Panic(err)
 		return "", err
 	}
 	return token, nil
 }
 
-func VerifyToken(token string, id string) error {
-	key := os.Getenv("JWT_KEY")
+func VerifyToken(token string, providedID string) (string, string, error) {
 
 	t, err := jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
-		return []byte(key), nil
+		return []byte(os.Getenv("JWT_KEY")), nil
 	})
 
 	if err != nil {
 		log.Panic(err)
-		return err
+		return "", "", err
 	}
-	claims, ok := t.Claims.(jwt.MapClaims)
-	if !ok || !t.Valid || id != claims["id"] {
-		return errors.New("Invalid JWT.")
+
+	user, ok := t.Claims.(jwt.MapClaims)
+
+	id := user["sus"].([]interface{})[0].(string)
+	role := user["sus"].([]interface{})[1].(string)
+
+	if !ok || !t.Valid || id != providedID {
+		log.Panic("incorrect verification")
+		return "", "", fmt.Errorf("validation failed. Please login again.")
 	}
-	return nil
+	return id, role, nil
 }

@@ -14,6 +14,7 @@ import (
 	"github.com/RushinShah22/e-commerce-micro/gateway/graph"
 	"github.com/RushinShah22/e-commerce-micro/gateway/graph/model"
 	"github.com/joho/godotenv"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 const defaultPort = "8080"
@@ -36,6 +37,7 @@ func main() {
 	}}
 
 	c.Directives.Auth = func(ctx context.Context, obj interface{}, next graphql.Resolver) (res interface{}, err error) {
+
 		c := graphql.GetOperationContext(ctx)
 		header := strings.Split(c.Headers.Get("Authorization"), " ")
 		if len(header) != 2 {
@@ -45,26 +47,34 @@ func main() {
 		token := header[1]
 
 		fieldCtx := graphql.GetFieldContext(ctx)
-		id := fieldCtx.Args["id"].(string)
-		err = graph.VerifyToken(token, id)
+		providedId := fieldCtx.Args["id"].(string)
+
+		if _, err = primitive.ObjectIDFromHex(providedId); err != nil {
+			log.Println("Provided incorrect id for token verification.")
+			return nil, fmt.Errorf("Please provide a valid id.")
+		}
+		id, role, err := graph.VerifyToken(token, providedId)
 
 		if err != nil {
-			return nil, fmt.Errorf("Invalid access token. Please sign in again.")
+			log.Panic(err)
+			return nil, err
 		}
 
+		ctx = context.WithValue(ctx, "role", role)
 		ctx = context.WithValue(ctx, "id", id)
 		return next(ctx)
 
 	}
 
 	c.Directives.HasRole = func(ctx context.Context, obj interface{}, next graphql.Resolver, role model.Role) (res interface{}, err error) {
+		r := ctx.Value("role")
+		fmt.Printf("%s %s\n", r, role)
 
-		c := graphql.GetOperationContext(ctx)
-		vars := c.Variables
-
-		if vars["role"] != role {
-			return nil, fmt.Errorf("Only admins can perform this operation")
+		if r != role.String() {
+			log.Println("Unauthorized access.")
+			return nil, fmt.Errorf("Only %s is allowed to perform this operation.", role)
 		}
+
 		return next(ctx)
 	}
 
