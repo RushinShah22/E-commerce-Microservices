@@ -7,9 +7,10 @@ import (
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 )
 
+// partition number
 const (
-	CREATED = iota
-	UPDATED
+	CREATED = iota // partition 0 for created event
+	UPDATED        // partition 1 for updated event
 )
 
 type ProductProducer struct {

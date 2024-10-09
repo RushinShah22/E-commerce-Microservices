@@ -12,6 +12,7 @@ import (
 
 func main() {
 
+	// We create new topic using data from Args of the command
 	if len(os.Args) != 5 {
 		fmt.Fprintf(os.Stderr,
 			"Usage: %s <bootstrap-servers> <topic> <partition-count> <replication-factor>\n",
@@ -19,9 +20,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	bootstrapServers := os.Args[1]
-	topic := os.Args[2]
-	numParts, err := strconv.Atoi(os.Args[3])
+	bootstrapServers := os.Args[1]            // Get the server URL
+	topic := os.Args[2]                       // Name of the topic we want to create
+	numParts, err := strconv.Atoi(os.Args[3]) // Number of partition in this new topic.
+
 	if err != nil {
 		fmt.Printf("Invalid partition count: %s: %v\n", os.Args[3], err)
 		panic(err)

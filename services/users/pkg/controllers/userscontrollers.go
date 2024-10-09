@@ -16,6 +16,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+// This function returns all the user.
 func GetAllUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	cursor, err := database.User.UserColl.Find(r.Context(), bson.M{}, options.Find().SetProjection(bson.D{{Key: "password", Value: 0}, {Key: "createdAt", Value: 0}}))
@@ -41,6 +42,7 @@ func GetAllUser(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// This function get a single user based on ID.
 func GetAUser(w http.ResponseWriter, r *http.Request) {
 	_id := chi.URLParam(r, "id")
 
@@ -62,6 +64,7 @@ func GetAUser(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// This function creates a new user and also produces a new user event on the User Topic.
 func AddAUser(w http.ResponseWriter, r *http.Request) {
 	var user model.User
 	err := json.NewDecoder(r.Body).Decode(&user)
@@ -84,6 +87,7 @@ func AddAUser(w http.ResponseWriter, r *http.Request) {
 
 	newUser, err := database.User.UserColl.InsertOne(r.Context(), user)
 
+	// checking if the user already exists with the same email
 	if mongo.IsDuplicateKeyError(err) {
 		http.Error(w, "Account with email: "+user.Email+" already exists!!!", http.StatusBadRequest)
 		log.Println(err)
@@ -96,16 +100,22 @@ func AddAUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// assigning the newly generated object id.
 	user.ID = newUser.InsertedID.(primitive.ObjectID)
+
+	// removing sensitive information
+	user.Password = ""
+	user.CreatedAt = 0
 
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(user)
 
-	// Producing user
+	// Producing user on users topic
 	go producers.ProduceMessage(user, producers.CREATED)
 
 }
 
+// This function is use to verify(login) the user.
 func VerifyUser(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
@@ -149,6 +159,5 @@ func VerifyUser(w http.ResponseWriter, r *http.Request) {
 	user.CreatedAt = 0
 
 	w.WriteHeader(http.StatusOK)
-
 	json.NewEncoder(w).Encode(user)
 }

@@ -14,9 +14,10 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+// Partition number
 const (
-	CREATED = iota
-	UPDATED
+	CREATED = iota // parition 0 for create event
+	UPDATED        // partition 1 for update event
 )
 
 func SetupConsumer(groupID string, topics []string, topicPartition *[]kafka.TopicPartition, callback func(*kafka.Message)) {
@@ -52,6 +53,7 @@ func SetupConsumer(groupID string, topics []string, topicPartition *[]kafka.Topi
 
 }
 
+// This function is called when a product is consumed.
 func ProductsCallback(msg *kafka.Message) {
 	var productJson interface{}
 
@@ -61,6 +63,8 @@ func ProductsCallback(msg *kafka.Message) {
 	}
 
 	var product model.Catalog
+
+	// changing data fields to match model.Catalog
 	if data, ok := productJson.(map[string]interface{}); ok {
 		data["productID"] = data["id"]
 		data["id"] = ""
@@ -75,19 +79,20 @@ func ProductsCallback(msg *kafka.Message) {
 	}
 
 	switch msg.TopicPartition.Partition {
-	case CREATED:
+	case CREATED: // A product is consumer
 		insertedData, err := database.Order.CatalogColl.InsertOne(context.Background(), product)
 		if err != nil {
 			panic(err)
 		}
 		log.Printf("Consumed new product %s", insertedData.InsertedID)
-	case UPDATED:
+	case UPDATED: // A product is updated
 		database.Order.CatalogColl.FindOneAndReplace(context.TODO(), bson.D{{Key: "productID", Value: product.ProductID}}, product, options.FindOneAndReplace().SetReturnDocument(options.After))
 		log.Printf("Consumed Updated product %s", product.ProductID)
 	}
 
 }
 
+// This function is called when a new user event is consumed
 func UserCallback(msg *kafka.Message) {
 	var userJson interface{}
 	err := json.Unmarshal(msg.Value, &userJson)
@@ -97,6 +102,7 @@ func UserCallback(msg *kafka.Message) {
 	}
 	var user model.User
 
+	// changing data fields to match the model.User
 	if data, ok := userJson.(map[string]interface{}); ok {
 		data["userID"] = data["id"]
 		data["id"] = ""

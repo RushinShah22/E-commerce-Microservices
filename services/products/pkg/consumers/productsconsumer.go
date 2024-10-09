@@ -14,8 +14,9 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+// partition number
 const (
-	CREATED = iota
+	CREATED = iota // partition 0
 )
 
 func SetupConsumer(groupID string, topics []string, topicPartition *[]kafka.TopicPartition, callback func(*kafka.Message)) {
@@ -31,17 +32,18 @@ func SetupConsumer(groupID string, topics []string, topicPartition *[]kafka.Topi
 	if err != nil {
 		panic(err)
 	}
+
+	// will onyly consume from a assigned partition
 	err = Consumer.Assign(*topicPartition)
 	if err != nil {
 		panic(err)
 	}
 
 	for {
-		ev := Consumer.Poll(100)
+		ev := Consumer.Poll(100) // checking for message every 100 ms
 		switch e := ev.(type) {
 		case *kafka.Message:
 			// application-specific processing
-
 			go callback(e)
 
 		case kafka.Error:
@@ -54,6 +56,7 @@ func SetupConsumer(groupID string, topics []string, topicPartition *[]kafka.Topi
 
 }
 
+// This function is called to consume a new order.
 func OrderCallback(msg *kafka.Message) {
 	var data interface{}
 	err := json.Unmarshal(msg.Value, &data)
@@ -63,6 +66,7 @@ func OrderCallback(msg *kafka.Message) {
 	var productID primitive.ObjectID
 	var quantityUsed int
 
+	// moving fields around for struct field matching with the model
 	if order, ok := data.(map[string]interface{}); ok {
 		productID, _ = primitive.ObjectIDFromHex(order["productID"].(string))
 		quantityUsed = int(order["quantity"].(float64))
@@ -77,17 +81,20 @@ func OrderCallback(msg *kafka.Message) {
 
 }
 
+// This function is called when a new user is consumed
 func UserCallback(msg *kafka.Message) {
 	var userJson interface{}
 	json.Unmarshal(msg.Value, &userJson)
-	fmt.Println("YESSS")
+
 	var seller model.Seller
+
+	// moving field data around to make it compatible with the seller model.
 	if data, ok := userJson.(map[string]interface{}); ok {
 
 		if data["role"] != "seller" {
 			return
 		}
-		data["userID"], _ = primitive.ObjectIDFromHex(data["id"].(string))
+		data["userID"], _ = primitive.ObjectIDFromHex(data["id"].(string)) // since id -> userID
 		data["id"] = ""
 
 		tmpJson, _ := json.Marshal(data)

@@ -9,6 +9,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+// This function generates a new jwt
 func GenerateToken(id string, role string) (string, error) {
 
 	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
@@ -25,6 +26,7 @@ func GenerateToken(id string, role string) (string, error) {
 	return token, nil
 }
 
+// This function Verifies the JWT token of the user
 func VerifyToken(token string) (string, string, error) {
 
 	t, err := jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {

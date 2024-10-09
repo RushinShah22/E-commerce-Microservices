@@ -15,6 +15,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+// This is helper function to fetch a particular seller
 func GetSeller(ctx context.Context, id primitive.ObjectID) model.Seller {
 	var seller model.Seller
 	database.Product.SellerColl.FindOne(ctx, bson.D{{Key: "userID", Value: id}}).Decode(&seller)
@@ -35,6 +36,7 @@ func CreateProduct(w http.ResponseWriter, r *http.Request) {
 	}
 	insertedPro, err := database.Product.ProductColl.InsertOne(r.Context(), newProduct)
 
+	// inserting the new document id in the struct
 	newProduct.ID = insertedPro.InsertedID.(primitive.ObjectID)
 	if err != nil || newProduct.ID == primitive.NilObjectID {
 		http.Error(w, "something went wrong.", http.StatusInternalServerError)
@@ -46,13 +48,13 @@ func CreateProduct(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(newProduct)
 
 	// Produce message in Go routine
-
 	go producers.ProduceMessage(newProduct, producers.CREATED)
 }
 
 func GetAllProducts(w http.ResponseWriter, r *http.Request) {
 	var products []model.Product
 	cursor, err := database.Product.ProductColl.Find(r.Context(), bson.D{})
+
 	w.Header().Set("Content-Type", "application/json")
 	if err != nil {
 		http.Error(w, "something went wrong.", http.StatusInternalServerError)
@@ -101,6 +103,7 @@ func GetAProduct(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(product)
 }
 
+// This function is used for updating various parameters of a product.
 func UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	var newDetails model.Product
 	id, err := primitive.ObjectIDFromHex(chi.URLParam(r, "id"))

@@ -26,6 +26,7 @@ func ConnToDB(uri string) {
 		panic(err)
 	}
 
+	// Helpful gloabl var regarding DB.
 	Order.Client = client
 	Order.DB = Order.Client.Database("e-commerce")
 	Order.UserColl = Order.DB.Collection("users")

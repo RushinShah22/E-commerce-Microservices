@@ -7,8 +7,9 @@ import (
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 )
 
+// Parition number
 const (
-	CREATED = iota
+	CREATED = iota // a new user is created on parition 0
 )
 
 type UserProducer struct {

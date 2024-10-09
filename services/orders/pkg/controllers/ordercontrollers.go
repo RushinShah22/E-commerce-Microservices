@@ -15,18 +15,21 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+// This is a helper function to fetch a user with a specified ID.
 func GetUser(ctx context.Context, id primitive.ObjectID) model.User {
 	var user model.User
 	database.Order.UserColl.FindOne(ctx, bson.D{{Key: "userID", Value: id}}).Decode(&user)
 	return user
 }
 
+// This is a helper function to fetch a product with a specified ID.
 func GetProduct(ctx context.Context, id primitive.ObjectID) model.Catalog {
 	var product model.Catalog
 	database.Order.CatalogColl.FindOne(ctx, bson.D{{Key: "productID", Value: id}}).Decode(&product)
 	return product
 }
 
+// This is a helper function to check if we have enough quantity of a product
 func checkQuantity(ctx context.Context, productID primitive.ObjectID, quantity int) int {
 	var product model.Catalog
 	database.Order.CatalogColl.FindOne(ctx, bson.D{{Key: "productID", Value: productID}}).Decode(&product)
@@ -48,6 +51,7 @@ func CreateOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Check if the user exists.
 	user := GetUser(r.Context(), newOrder.UserID)
 	if user.UserID == primitive.NilObjectID {
 		http.Error(w, "No user found with the provided id.", http.StatusBadRequest)
@@ -55,6 +59,7 @@ func CreateOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Check if the product exists.
 	product := GetProduct(r.Context(), newOrder.ProductID)
 	if product.ProductID == primitive.NilObjectID {
 		http.Error(w, "No product found with the provided id.", http.StatusBadRequest)
@@ -62,6 +67,7 @@ func CreateOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Check if there is enough quantity/
 	newQuantity := checkQuantity(r.Context(), newOrder.ProductID, newOrder.Quantity)
 	if newQuantity < 0 {
 		http.Error(w, "Required Quantity or Product Not available.", http.StatusBadRequest)

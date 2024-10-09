@@ -23,6 +23,8 @@ func ConnToDB(uri string) {
 	if err != nil {
 		panic(err)
 	}
+
+	// Helpful global var related to DB.
 	Product.Client = client
 	Product.DB = Product.Client.Database("e-commerce")
 	Product.ProductColl = Product.DB.Collection("products")

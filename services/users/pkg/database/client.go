@@ -21,6 +21,8 @@ func ConnToDB(uri string) {
 	if err != nil {
 		panic(err)
 	}
+
+	// storing necessary data on the global var.
 	User.Client = client
 	User.DB = User.Client.Database("e-commerce")
 	User.UserColl = User.DB.Collection("users")
