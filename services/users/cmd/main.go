@@ -1,15 +1,20 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/RushinShah22/e-commerce-micro/services/users/pkg/controllers"
 	database "github.com/RushinShah22/e-commerce-micro/services/users/pkg/database"
 	"github.com/RushinShah22/e-commerce-micro/services/users/pkg/producers"
 	"github.com/go-chi/chi/v5"
 	"github.com/joho/godotenv"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func main() {
@@ -26,6 +31,18 @@ func main() {
 
 	database.ConnToDB(uri)
 	// Create the entry point
+
+	indexModel := mongo.IndexModel{
+		Keys:    bson.D{{Key: "email", Value: 1}}, // Create index on the "email" field
+		Options: options.Index().SetUnique(true),
+	}
+	ctx, canc := context.WithTimeout(context.Background(), 10*time.Second)
+	defer canc()
+
+	_, err := database.User.UserColl.Indexes().CreateOne(ctx, indexModel)
+	if err != nil {
+		log.Fatal("Failed to create index:", err)
+	}
 	root := chi.NewRouter()
 
 	// USER router

@@ -12,6 +12,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
@@ -82,6 +83,12 @@ func AddAUser(w http.ResponseWriter, r *http.Request) {
 	user.CreatedAt = primitive.NewDateTimeFromTime(time.Now())
 
 	newUser, err := database.User.UserColl.InsertOne(r.Context(), user)
+
+	if mongo.IsDuplicateKeyError(err) {
+		http.Error(w, "Account with email: "+user.Email+" already exists!!!", http.StatusBadRequest)
+		log.Println(err)
+		return
+	}
 
 	if err != nil {
 		http.Error(w, "Something went wrong.", http.StatusInternalServerError)
