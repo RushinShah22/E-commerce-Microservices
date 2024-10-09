@@ -21,12 +21,18 @@ func (r *mutationResolver) RegisterUser(ctx context.Context, input model.Registe
 	data, err := json.Marshal(input)
 
 	if err != nil {
-		panic(err)
+		log.Panic(err)
+		return &model.User{}, fmt.Errorf("something went wrong.")
 	}
 
 	userReader := bytes.NewReader(data)
 
 	req, err := http.NewRequest(http.MethodPost, r.UserURL, userReader)
+
+	if err != nil {
+		log.Panic(err)
+		return &model.User{}, err
+	}
 
 	req.Header.Set("Content-Type", "application/json")
 
@@ -37,7 +43,8 @@ func (r *mutationResolver) RegisterUser(ctx context.Context, input model.Registe
 	resp, err := client.Do(req)
 
 	if err != nil {
-		panic(err)
+		log.Panic(err)
+		return &model.User{}, err
 	}
 
 	var user *model.User
@@ -50,12 +57,18 @@ func (r *mutationResolver) CreateProduct(ctx context.Context, input model.Produc
 	data, err := json.Marshal(input)
 
 	if err != nil {
-		panic(err)
+		log.Panic(err)
+		return &model.Product{}, fmt.Errorf("something went wrong.")
 	}
 
 	productReader := bytes.NewReader(data)
 
 	req, err := http.NewRequest(http.MethodPost, r.ProductURL, productReader)
+
+	if err != nil {
+		log.Panic(err)
+		return &model.Product{}, err
+	}
 
 	req.Header.Set("Content-Type", "application/json")
 
@@ -66,7 +79,8 @@ func (r *mutationResolver) CreateProduct(ctx context.Context, input model.Produc
 	resp, err := client.Do(req)
 
 	if err != nil {
-		panic(err)
+		log.Panic(err)
+		return &model.Product{}, err
 	}
 
 	var product *model.Product
@@ -79,12 +93,17 @@ func (r *mutationResolver) PlaceOrder(ctx context.Context, input model.OrderInpu
 	data, err := json.Marshal(input)
 
 	if err != nil {
-		panic(err)
+		log.Panic(err)
+		return &model.Order{}, fmt.Errorf("something went wrong.")
 	}
 
 	orderReader := bytes.NewReader(data)
 
 	req, err := http.NewRequest(http.MethodPost, r.OrderURL, orderReader)
+	if err != nil {
+		log.Panic(err)
+		return &model.Order{}, err
+	}
 
 	req.Header.Set("Content-Type", "application/json")
 
@@ -95,7 +114,8 @@ func (r *mutationResolver) PlaceOrder(ctx context.Context, input model.OrderInpu
 	resp, err := client.Do(req)
 
 	if err != nil {
-		panic(err)
+		log.Panic(err)
+		return &model.Order{}, err
 	}
 
 	var order *model.Order
@@ -108,13 +128,15 @@ func (r *mutationResolver) Login(ctx context.Context, input *model.LoginInput) (
 	jsonData, err := json.Marshal(input)
 
 	if err != nil {
-		return nil, fmt.Errorf("Something went wrong.")
+		log.Panic(err)
+		return &model.User{}, fmt.Errorf("Something went wrong.")
 	}
 	data := bytes.NewReader(jsonData)
 	req, err := http.NewRequest(http.MethodPost, r.UserURL+"/"+"verify", data)
 
 	if err != nil {
-		return nil, fmt.Errorf("Something went wrong.")
+		log.Panic(err)
+		return &model.User{}, fmt.Errorf("Something went wrong.")
 	}
 
 	client := http.Client{
@@ -123,7 +145,8 @@ func (r *mutationResolver) Login(ctx context.Context, input *model.LoginInput) (
 	resp, err := client.Do(req)
 
 	if err != nil {
-		return nil, err
+		log.Panic(err)
+		return &model.User{}, err
 	}
 	var user model.User
 
@@ -132,8 +155,8 @@ func (r *mutationResolver) Login(ctx context.Context, input *model.LoginInput) (
 	token, err := GenerateToken(user.ID, user.Role)
 
 	if err != nil {
-		fmt.Println(err)
-		return nil, fmt.Errorf("Something went wrong.")
+		log.Panic(err)
+		return &model.User{}, fmt.Errorf("Something went wrong.")
 	}
 
 	c := ctx.Value("writer").(http.ResponseWriter)
@@ -147,8 +170,8 @@ func (r *queryResolver) Users(ctx context.Context) ([]*model.User, error) {
 	resp, err := http.Get(r.UserURL)
 
 	if err != nil {
-		log.Println(err)
-		return nil, err
+		log.Panic(err)
+		return []*model.User{}, err
 	}
 	var users []*model.User
 	json.NewDecoder(resp.Body).Decode(&users)
@@ -159,7 +182,8 @@ func (r *queryResolver) Users(ctx context.Context) ([]*model.User, error) {
 func (r *queryResolver) User(ctx context.Context, id string) (*model.User, error) {
 	resp, err := http.Get(r.UserURL + "/" + id)
 	if err != nil {
-		panic(err)
+		log.Panic(err)
+		return &model.User{}, err
 	}
 
 	var user *model.User
@@ -172,7 +196,8 @@ func (r *queryResolver) Products(ctx context.Context) ([]*model.Product, error) 
 	resp, err := http.Get(r.ProductURL)
 
 	if err != nil {
-		panic(err)
+		log.Panic(err)
+		return []*model.Product{}, err
 	}
 
 	var products []*model.Product
@@ -186,8 +211,8 @@ func (r *queryResolver) Product(ctx context.Context, id string) (*model.Product,
 	resp, err := http.Get(r.ProductURL + "/" + id)
 
 	if err != nil {
-		fmt.Print("YESS")
-		panic(err)
+		log.Panic(err)
+		return &model.Product{}, err
 	}
 
 	var product *model.Product
@@ -200,7 +225,8 @@ func (r *queryResolver) Orders(ctx context.Context) ([]*model.Order, error) {
 	resp, err := http.Get(r.OrderURL)
 
 	if err != nil {
-		panic(err)
+		log.Panic(err)
+		return []*model.Order{}, err
 	}
 
 	var orders []*model.Order
@@ -210,11 +236,12 @@ func (r *queryResolver) Orders(ctx context.Context) ([]*model.Order, error) {
 }
 
 // Order is the resolver for the order field.
-func (r *queryResolver) Order(ctx context.Context, id string) (*model.Order, error) {
+func (r *queryResolver) Order(ctx context.Context, orderID string, id string) (*model.Order, error) {
 	resp, err := http.Get(r.OrderURL + "/" + id)
 
 	if err != nil {
-		panic(err)
+		log.Panic(err)
+		return &model.Order{}, err
 	}
 
 	var order *model.Order

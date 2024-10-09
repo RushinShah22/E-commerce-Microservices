@@ -3,7 +3,7 @@ package controllers
 import (
 	"context"
 	"encoding/json"
-	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/RushinShah22/e-commerce-micro/services/orders/pkg/database"
@@ -29,14 +29,17 @@ func CreateOrder(w http.ResponseWriter, r *http.Request) {
 	var newOrder model.Order
 	err := json.NewDecoder(r.Body).Decode(&newOrder)
 
-	if err != nil {
-		panic(err)
-	}
 	w.Header().Set("Content-Type", "application/json")
+	if err != nil {
+		http.Error(w, "something went wrong.", http.StatusInternalServerError)
+		log.Panic(err)
+		return
+	}
+
 	newQuantity := checkQuantity(r.Context(), newOrder.ProductID, newOrder.Quantity)
 	if newQuantity < 0 {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Required Quantity or Product Not available."))
+		http.Error(w, "Required Quantity or Product Not available.", http.StatusBadRequest)
+		log.Print("Tried to buy more products than available.")
 		return
 	}
 
@@ -45,6 +48,12 @@ func CreateOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	res, err := database.Order.OrderColl.InsertOne(r.Context(), newOrder)
+
+	if err != nil {
+		http.Error(w, "something went wrong.", http.StatusInternalServerError)
+		log.Panic(err)
+		return
+	}
 
 	proRes := database.Order.CatalogColl.FindOneAndUpdate(r.Context(), bson.D{{Key: "productID", Value: newOrder.ProductID}}, bson.M{"$set": bson.M{"quantity": newQuantity}}, options.FindOneAndUpdate().SetReturnDocument(options.After))
 	proRes.Decode(&newProduct)
@@ -60,18 +69,24 @@ func CreateOrder(w http.ResponseWriter, r *http.Request) {
 
 func GetAllOrders(w http.ResponseWriter, r *http.Request) {
 	var orders []model.Order
+	w.Header().Set("Content-Type", "application/json")
+
 	cursor, err := database.Order.OrderColl.Find(r.Context(), bson.M{})
+
 	if err != nil {
-		panic(err)
+		http.Error(w, "something went wrong.", http.StatusInternalServerError)
+		log.Panic(err)
+		return
 	}
+
 	err = cursor.All(r.Context(), &orders)
 
 	if err != nil {
-		panic(err)
+		http.Error(w, "something went wrong.", http.StatusInternalServerError)
+		log.Panic(err)
+		return
 	}
-	fmt.Printf("%#v", orders)
 
-	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(orders)
 }
@@ -83,7 +98,8 @@ func GetAOrder(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	if err != nil {
-		http.Error(w, "Something Went Wrong", http.StatusInternalServerError)
+		http.Error(w, "something went wrong.", http.StatusInternalServerError)
+		log.Panic(err)
 		return
 	}
 
@@ -91,6 +107,7 @@ func GetAOrder(w http.ResponseWriter, r *http.Request) {
 
 	if order.ID == primitive.NilObjectID {
 		http.Error(w, "Order was not found", http.StatusNotFound)
+		log.Printf("Tried to get a product with invalid id.")
 		return
 	}
 	w.WriteHeader(http.StatusOK)
