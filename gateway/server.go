@@ -14,7 +14,6 @@ import (
 	"github.com/RushinShah22/e-commerce-micro/gateway/graph"
 	"github.com/RushinShah22/e-commerce-micro/gateway/graph/model"
 	"github.com/joho/godotenv"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 const defaultPort = "8080"
@@ -29,41 +28,43 @@ func main() {
 	if port == "" {
 		port = defaultPort
 	}
-
+	uURL := "http://users:3000/users"
+	pURL := "http://products:8000/products"
+	oURL := "http://orders:4000/orders"
 	c := graph.Config{Resolvers: &graph.Resolver{
-		UserURL:    "http://users:3000/users",
-		ProductURL: "http://products:8000/products",
-		OrderURL:   "http://orders:4000/orders",
+		UserURL:    uURL,
+		ProductURL: pURL,
+		OrderURL:   oURL,
 	}}
 
 	c.Directives.Auth = func(ctx context.Context, obj interface{}, next graphql.Resolver) (res interface{}, err error) {
-		defer func() {
-			myErr := &err
-			fmt.Println("yess")
-			fmt.Println(*myErr)
-		}()
-		c := graphql.GetOperationContext(ctx)
-		header := strings.Split(c.Headers.Get("Authorization"), " ")
-		fmt.Println(header)
+
+		ct := graphql.GetOperationContext(ctx)
+		header := strings.Split(ct.Headers.Get("Authorization"), " ")
 		if len(header) != 2 {
-			fmt.Println("yess")
 			err = fmt.Errorf("No bearer token was found")
 			return
 		}
 
 		token := header[1]
 
-		fieldCtx := graphql.GetFieldContext(ctx)
-		providedId := fieldCtx.Args["id"].(string)
-
-		if _, err = primitive.ObjectIDFromHex(providedId); err != nil {
-			log.Println("Provided incorrect id for token verification.")
-			return
-		}
-		id, role, err := graph.VerifyToken(token, providedId)
+		id, role, err := graph.VerifyToken(token)
 
 		if err != nil {
 			log.Println(err)
+			return
+		}
+
+		resp, err := http.Get(uURL + "/" + id)
+
+		if err != nil {
+			log.Println(err)
+			return
+		}
+
+		if resp.StatusCode != http.StatusOK {
+			log.Println("Tried to access a admin path using fake user id.")
+			err = fmt.Errorf("Your session has expired. Please sign in again.")
 			return
 		}
 
@@ -80,7 +81,6 @@ func main() {
 			log.Println("Unauthorized access.")
 			return struct{}{}, fmt.Errorf("Only %s is allowed to perform this operation.", role)
 		}
-		defer func() { fmt.Println(err) }()
 		return next(ctx)
 	}
 

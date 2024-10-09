@@ -17,29 +17,23 @@ type Mutation struct {
 }
 
 type Order struct {
-	ID            string `json:"id"`
-	ProductID     string `json:"productID"`
-	ProductName   string `json:"productName"`
-	UserID        string `json:"userID"`
-	Quantity      int    `json:"quantity"`
-	UserFirstName string `json:"userFirstName"`
-	UserLastName  string `json:"userLastName"`
-	Role          string `json:"role"`
-}
-
-type OrderInput struct {
-	UserID    string `json:"userID"`
+	ID        string `json:"id"`
 	ProductID string `json:"productID"`
+	UserID    string `json:"userID"`
 	Quantity  int    `json:"quantity"`
 }
 
+type OrderInput struct {
+	ProductID string `json:"productID"`
+	Quantity  int    `json:"quantity"`
+	UserID    string `json:"userID"`
+}
+
 type Product struct {
-	ID              string `json:"id"`
-	Name            string `json:"name"`
-	Quantity        int    `json:"quantity"`
-	SellerID        string `json:"sellerID"`
-	SellerFirstName string `json:"sellerFirstName"`
-	SellerLastName  string `json:"sellerLastName"`
+	ID       string `json:"id"`
+	Name     string `json:"name"`
+	Quantity int    `json:"quantity"`
+	SellerID string `json:"sellerID"`
 }
 
 type ProductInput struct {

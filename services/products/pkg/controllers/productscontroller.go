@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -14,19 +15,32 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+func GetSeller(ctx context.Context, id primitive.ObjectID) model.Seller {
+	var seller model.Seller
+	database.Product.SellerColl.FindOne(ctx, bson.D{{Key: "userID", Value: id}}).Decode(&seller)
+	return seller
+}
+
 func CreateProduct(w http.ResponseWriter, r *http.Request) {
 	var newProduct model.Product
 	w.Header().Set("Content-Type", "application/json")
 
 	json.NewDecoder(r.Body).Decode(&newProduct)
+	seller := GetSeller(r.Context(), newProduct.SellerID)
+
+	if seller.ID == primitive.NilObjectID {
+		log.Println("Tried to create product with invalid seller.")
+		http.Error(w, "No seller exists with the provided id.", http.StatusBadRequest)
+		return
+	}
 	insertedPro, err := database.Product.ProductColl.InsertOne(r.Context(), newProduct)
 
+	newProduct.ID = insertedPro.InsertedID.(primitive.ObjectID)
 	if err != nil || newProduct.ID == primitive.NilObjectID {
 		http.Error(w, "something went wrong.", http.StatusInternalServerError)
 		log.Panic(err)
 		return
 	}
-	newProduct.ID = insertedPro.InsertedID.(primitive.ObjectID)
 
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(newProduct)
@@ -75,7 +89,7 @@ func GetAProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	database.Product.ProductColl.FindOne(r.Context(), bson.D{{Key: "_id", Value: id}}).Decode(&product)
+	database.Product.ProductColl.FindOne(r.Context(), bson.D{{Key: "_id", Value: id}}, options.FindOne()).Decode(&product)
 	w.Header().Set("Content-Type", "application/json")
 	if product.ID == primitive.NilObjectID {
 		log.Printf("Made request with wrong product ID: %s\n", id)
@@ -104,6 +118,12 @@ func UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	var updatedProduct model.Product
 
 	database.Product.ProductColl.FindOneAndUpdate(r.Context(), bson.D{{Key: "_id", Value: id}}, bson.D{{Key: "$set", Value: newDetails}}, options.FindOneAndUpdate().SetReturnDocument(options.After)).Decode(&updatedProduct)
+
+	if updatedProduct.ID == primitive.NilObjectID {
+		log.Printf("Made request with wrong product ID: %s\n", id)
+		http.Error(w, "No such product exists with id: "+id.Hex(), http.StatusBadRequest)
+		return
+	}
 
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(updatedProduct)

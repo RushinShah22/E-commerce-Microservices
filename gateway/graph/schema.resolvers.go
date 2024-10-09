@@ -61,7 +61,7 @@ func (r *mutationResolver) RegisterUser(ctx context.Context, input model.Registe
 }
 
 // CreateProduct is the resolver for the createProduct field.
-func (r *mutationResolver) CreateProduct(ctx context.Context, input model.ProductInput, id string) (*model.Product, error) {
+func (r *mutationResolver) CreateProduct(ctx context.Context, input model.ProductInput) (*model.Product, error) {
 	data, err := json.Marshal(input)
 
 	if err != nil {
@@ -102,7 +102,14 @@ func (r *mutationResolver) CreateProduct(ctx context.Context, input model.Produc
 }
 
 // PlaceOrder is the resolver for the placeOrder field.
-func (r *mutationResolver) PlaceOrder(ctx context.Context, input model.OrderInput, id string) (*model.Order, error) {
+func (r *mutationResolver) PlaceOrder(ctx context.Context, input model.OrderInput) (*model.Order, error) {
+	loggedInID := ctx.Value("id").(string)
+
+	if loggedInID != input.UserID {
+		log.Println("Tried to access place order for someone else.")
+		return nil, fmt.Errorf("You are not authorized to place order for this user.")
+	}
+
 	data, err := json.Marshal(input)
 
 	if err != nil {
@@ -207,11 +214,19 @@ func (r *queryResolver) Users(ctx context.Context) ([]*model.User, error) {
 	}
 	var users []*model.User
 	json.NewDecoder(resp.Body).Decode(&users)
+
 	return users, nil
 }
 
 // User is the resolver for the user field.
 func (r *queryResolver) User(ctx context.Context, id string) (*model.User, error) {
+	loggedInID := ctx.Value("id").(string)
+
+	if loggedInID != id {
+		log.Println("Tried to access someone else's profile.")
+		return nil, fmt.Errorf("You are not authorized to view this data.")
+	}
+
 	resp, err := http.Get(r.UserURL + "/" + id)
 
 	if resp.StatusCode != http.StatusOK {
@@ -226,6 +241,7 @@ func (r *queryResolver) User(ctx context.Context, id string) (*model.User, error
 
 	var user *model.User
 	json.NewDecoder(resp.Body).Decode(&user)
+
 	return user, nil
 }
 
@@ -291,7 +307,7 @@ func (r *queryResolver) Orders(ctx context.Context) ([]*model.Order, error) {
 }
 
 // Order is the resolver for the order field.
-func (r *queryResolver) Order(ctx context.Context, orderID string, id string) (*model.Order, error) {
+func (r *queryResolver) Order(ctx context.Context, id string) (*model.Order, error) {
 	resp, err := http.Get(r.OrderURL + "/" + id)
 
 	if err != nil {
@@ -307,6 +323,13 @@ func (r *queryResolver) Order(ctx context.Context, orderID string, id string) (*
 
 	var order *model.Order
 	json.NewDecoder(resp.Body).Decode(&order)
+
+	loggedInID := ctx.Value("id").(string)
+
+	if loggedInID != order.UserID {
+		log.Println("Tried to access someone else's order.")
+		return nil, fmt.Errorf("You are not authorized to view this data.")
+	}
 	return order, nil
 }
 

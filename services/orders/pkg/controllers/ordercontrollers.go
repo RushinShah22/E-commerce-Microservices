@@ -15,6 +15,18 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+func GetUser(ctx context.Context, id primitive.ObjectID) model.User {
+	var user model.User
+	database.Order.UserColl.FindOne(ctx, bson.D{{Key: "userID", Value: id}}).Decode(&user)
+	return user
+}
+
+func GetProduct(ctx context.Context, id primitive.ObjectID) model.Catalog {
+	var product model.Catalog
+	database.Order.CatalogColl.FindOne(ctx, bson.D{{Key: "productID", Value: id}}).Decode(&product)
+	return product
+}
+
 func checkQuantity(ctx context.Context, productID primitive.ObjectID, quantity int) int {
 	var product model.Catalog
 	database.Order.CatalogColl.FindOne(ctx, bson.D{{Key: "productID", Value: productID}}).Decode(&product)
@@ -36,10 +48,24 @@ func CreateOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	user := GetUser(r.Context(), newOrder.UserID)
+	if user.UserID == primitive.NilObjectID {
+		http.Error(w, "No user found with the provided id.", http.StatusBadRequest)
+		log.Println("Tried to place order with fake user id.")
+		return
+	}
+
+	product := GetProduct(r.Context(), newOrder.ProductID)
+	if product.ProductID == primitive.NilObjectID {
+		http.Error(w, "No product found with the provided id.", http.StatusBadRequest)
+		log.Println("Tried to place order with fake product id.")
+		return
+	}
+
 	newQuantity := checkQuantity(r.Context(), newOrder.ProductID, newOrder.Quantity)
 	if newQuantity < 0 {
 		http.Error(w, "Required Quantity or Product Not available.", http.StatusBadRequest)
-		log.Print("Tried to buy more products than available.")
+		log.Println("Tried to buy more products than available.")
 		return
 	}
 
@@ -59,6 +85,12 @@ func CreateOrder(w http.ResponseWriter, r *http.Request) {
 	proRes.Decode(&newProduct)
 
 	newOrder.ID = res.InsertedID.(primitive.ObjectID)
+
+	if newOrder.ID == primitive.NilObjectID {
+		http.Error(w, "something went wrong.", http.StatusInternalServerError)
+		log.Panic("New product couldn't be created.")
+		return
+	}
 
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(&newOrder)

@@ -12,16 +12,13 @@ type Query {
   products: [Product!]!
   product(id: ID!): Product
   orders: [Order!]!
-  order(orderID: ID!, id: ID!): Order @auth
+  order(id: ID!): Order @auth
 }
 
 type Mutation {
   registerUser(input: RegisterInput!): User
-  createProduct(input: ProductInput!, id: ID!): Product
-    @hasRole(role: admin)
-    @auth
-
-  placeOrder(input: OrderInput!, id: ID!): Order @auth
+  createProduct(input: ProductInput!): Product @hasRole(role: admin) @auth
+  placeOrder(input: OrderInput!): Order @auth
   login(input: LoginInput): User
 }
 
@@ -38,19 +35,13 @@ type Product {
   name: String!
   quantity: Int!
   sellerID: ID!
-  sellerFirstName: String!
-  sellerLastName: String!
 }
 
 type Order {
   id: ID!
   productID: ID!
-  productName: String!
   userID: ID!
   quantity: Int!
-  userFirstName: String!
-  userLastName: String!
-  role: String!
 }
 
 input RegisterInput {
@@ -68,9 +59,9 @@ input ProductInput {
 }
 
 input OrderInput {
-  userID: ID!
   productID: ID!
   quantity: Int!
+  userID: ID!
 }
 
 input LoginInput {

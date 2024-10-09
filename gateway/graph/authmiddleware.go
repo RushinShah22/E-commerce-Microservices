@@ -25,7 +25,7 @@ func GenerateToken(id string, role string) (string, error) {
 	return token, nil
 }
 
-func VerifyToken(token string, providedID string) (string, string, error) {
+func VerifyToken(token string) (string, string, error) {
 
 	t, err := jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
 		return []byte(os.Getenv("JWT_KEY")), nil
@@ -41,7 +41,7 @@ func VerifyToken(token string, providedID string) (string, string, error) {
 	id := user["sus"].([]interface{})[0].(string)
 	role := user["sus"].([]interface{})[1].(string)
 
-	if !ok || !t.Valid || id != providedID {
+	if !ok || !t.Valid {
 		log.Panic("incorrect verification")
 		return "", "", fmt.Errorf("validation failed. Please login again.")
 	}
