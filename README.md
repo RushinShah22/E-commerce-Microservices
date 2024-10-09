@@ -30,7 +30,6 @@
   - [🔖 Prerequisites](#-prerequisites)
   - [🤖 Usage](#-usage)
 - [📌 Project Roadmap](#-project-roadmap)
-- [🙌 Acknowledgments](#-acknowledgments)
 
 ---
 
@@ -63,13 +62,20 @@
     ├── README.md
     ├── docker-compose.yml
     ├── gateway
+    │   ├── docker-compose.yml
     │   ├── gateway-dockerfile.dockerfile
-    │   └── go.mod
-    └── services
-        ├── broker
-        ├── orders
-        ├── products
-        └── users
+    │   ├── go.mod
+    │   ├── go.sum
+    │   ├── gqlgen.yml
+    │   ├── graph
+    │   ├── server.go
+    │   └── tools.go
+    ├── services
+    │   ├── broker
+    │   ├── orders
+    │   ├── products
+    │   └── users
+    └── setup.sh
 ```
 
 ---
