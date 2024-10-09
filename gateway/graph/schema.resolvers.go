@@ -9,11 +9,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"time"
 
 	"github.com/RushinShah22/e-commerce-micro/gateway/graph/model"
+	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
 // RegisterUser is the resolver for the registerUser field.
@@ -21,8 +23,8 @@ func (r *mutationResolver) RegisterUser(ctx context.Context, input model.Registe
 	data, err := json.Marshal(input)
 
 	if err != nil {
-		log.Panic(err)
-		return &model.User{}, fmt.Errorf("something went wrong.")
+		log.Println(err)
+		return nil, gqlerror.Wrap(err)
 	}
 
 	userReader := bytes.NewReader(data)
@@ -30,8 +32,8 @@ func (r *mutationResolver) RegisterUser(ctx context.Context, input model.Registe
 	req, err := http.NewRequest(http.MethodPost, r.UserURL, userReader)
 
 	if err != nil {
-		log.Panic(err)
-		return &model.User{}, err
+		log.Println(err)
+		return nil, gqlerror.Wrap(err)
 	}
 
 	req.Header.Set("Content-Type", "application/json")
@@ -43,8 +45,14 @@ func (r *mutationResolver) RegisterUser(ctx context.Context, input model.Registe
 	resp, err := client.Do(req)
 
 	if err != nil {
-		log.Panic(err)
-		return &model.User{}, err
+		log.Println(err)
+		return nil, gqlerror.Wrap(err)
+	}
+
+	if resp.StatusCode != http.StatusCreated {
+		body, _ := io.ReadAll(resp.Body)
+		log.Println(fmt.Errorf(string(body)))
+		return nil, gqlerror.Wrap(fmt.Errorf(string(body)))
 	}
 
 	var user *model.User
@@ -57,8 +65,8 @@ func (r *mutationResolver) CreateProduct(ctx context.Context, input model.Produc
 	data, err := json.Marshal(input)
 
 	if err != nil {
-		log.Panic(err)
-		return &model.Product{}, fmt.Errorf("something went wrong.")
+		log.Println(err)
+		return nil, gqlerror.Wrap(err)
 	}
 
 	productReader := bytes.NewReader(data)
@@ -66,8 +74,8 @@ func (r *mutationResolver) CreateProduct(ctx context.Context, input model.Produc
 	req, err := http.NewRequest(http.MethodPost, r.ProductURL, productReader)
 
 	if err != nil {
-		log.Panic(err)
-		return &model.Product{}, err
+		log.Println(err)
+		return nil, gqlerror.Wrap(err)
 	}
 
 	req.Header.Set("Content-Type", "application/json")
@@ -79,8 +87,13 @@ func (r *mutationResolver) CreateProduct(ctx context.Context, input model.Produc
 	resp, err := client.Do(req)
 
 	if err != nil {
-		log.Panic(err)
-		return &model.Product{}, err
+		log.Println(err)
+		return nil, gqlerror.Wrap(err)
+	}
+	if resp.StatusCode != http.StatusCreated {
+		body, _ := io.ReadAll(resp.Body)
+		log.Println(fmt.Errorf(string(body)))
+		return nil, gqlerror.Wrap(fmt.Errorf(string(body)))
 	}
 
 	var product *model.Product
@@ -93,16 +106,16 @@ func (r *mutationResolver) PlaceOrder(ctx context.Context, input model.OrderInpu
 	data, err := json.Marshal(input)
 
 	if err != nil {
-		log.Panic(err)
-		return &model.Order{}, fmt.Errorf("something went wrong.")
+		log.Println(err)
+		return nil, gqlerror.Wrap(err)
 	}
 
 	orderReader := bytes.NewReader(data)
 
 	req, err := http.NewRequest(http.MethodPost, r.OrderURL, orderReader)
 	if err != nil {
-		log.Panic(err)
-		return &model.Order{}, err
+		log.Println(err)
+		return nil, gqlerror.Wrap(err)
 	}
 
 	req.Header.Set("Content-Type", "application/json")
@@ -114,8 +127,14 @@ func (r *mutationResolver) PlaceOrder(ctx context.Context, input model.OrderInpu
 	resp, err := client.Do(req)
 
 	if err != nil {
-		log.Panic(err)
-		return &model.Order{}, err
+		log.Println(err)
+		return nil, gqlerror.Wrap(err)
+	}
+
+	if resp.StatusCode != http.StatusCreated {
+		body, _ := io.ReadAll(resp.Body)
+		log.Println(fmt.Errorf(string(body)))
+		return nil, gqlerror.Wrap(fmt.Errorf(string(body)))
 	}
 
 	var order *model.Order
@@ -128,15 +147,15 @@ func (r *mutationResolver) Login(ctx context.Context, input *model.LoginInput) (
 	jsonData, err := json.Marshal(input)
 
 	if err != nil {
-		log.Panic(err)
-		return &model.User{}, fmt.Errorf("Something went wrong.")
+		log.Println(err)
+		return nil, fmt.Errorf("Something went wrong.")
 	}
 	data := bytes.NewReader(jsonData)
 	req, err := http.NewRequest(http.MethodPost, r.UserURL+"/"+"verify", data)
 
 	if err != nil {
-		log.Panic(err)
-		return &model.User{}, fmt.Errorf("Something went wrong.")
+		log.Println(err)
+		return nil, gqlerror.Wrap(err)
 	}
 
 	client := http.Client{
@@ -145,9 +164,16 @@ func (r *mutationResolver) Login(ctx context.Context, input *model.LoginInput) (
 	resp, err := client.Do(req)
 
 	if err != nil {
-		log.Panic(err)
-		return &model.User{}, err
+		log.Println(err)
+		return nil, gqlerror.Wrap(err)
 	}
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		log.Println(fmt.Errorf(string(body)))
+		return nil, gqlerror.Wrap(fmt.Errorf(string(body)))
+	}
+
 	var user model.User
 
 	json.NewDecoder(resp.Body).Decode(&user)
@@ -155,8 +181,8 @@ func (r *mutationResolver) Login(ctx context.Context, input *model.LoginInput) (
 	token, err := GenerateToken(user.ID, user.Role)
 
 	if err != nil {
-		log.Panic(err)
-		return &model.User{}, fmt.Errorf("Something went wrong.")
+		log.Println(err)
+		return nil, fmt.Errorf("Something went wrong.")
 	}
 
 	c := ctx.Value("writer").(http.ResponseWriter)
@@ -170,8 +196,14 @@ func (r *queryResolver) Users(ctx context.Context) ([]*model.User, error) {
 	resp, err := http.Get(r.UserURL)
 
 	if err != nil {
-		log.Panic(err)
-		return []*model.User{}, err
+		log.Println(err)
+		return nil, gqlerror.Wrap(err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		log.Println(fmt.Errorf(string(body)))
+		return nil, gqlerror.Wrap(fmt.Errorf(string(body)))
 	}
 	var users []*model.User
 	json.NewDecoder(resp.Body).Decode(&users)
@@ -181,9 +213,15 @@ func (r *queryResolver) Users(ctx context.Context) ([]*model.User, error) {
 // User is the resolver for the user field.
 func (r *queryResolver) User(ctx context.Context, id string) (*model.User, error) {
 	resp, err := http.Get(r.UserURL + "/" + id)
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		log.Println(fmt.Errorf(string(body)))
+		return nil, gqlerror.Wrap(fmt.Errorf(string(body)))
+	}
 	if err != nil {
-		log.Panic(err)
-		return &model.User{}, err
+		log.Println(err)
+		return nil, gqlerror.Wrap(err)
 	}
 
 	var user *model.User
@@ -196,8 +234,14 @@ func (r *queryResolver) Products(ctx context.Context) ([]*model.Product, error) 
 	resp, err := http.Get(r.ProductURL)
 
 	if err != nil {
-		log.Panic(err)
-		return []*model.Product{}, err
+		log.Println(err)
+		return nil, gqlerror.Wrap(err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		log.Println(fmt.Errorf(string(body)))
+		return nil, gqlerror.Wrap(fmt.Errorf(string(body)))
 	}
 
 	var products []*model.Product
@@ -211,8 +255,14 @@ func (r *queryResolver) Product(ctx context.Context, id string) (*model.Product,
 	resp, err := http.Get(r.ProductURL + "/" + id)
 
 	if err != nil {
-		log.Panic(err)
-		return &model.Product{}, err
+		log.Println(err)
+		return nil, gqlerror.Wrap(err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		log.Println(fmt.Errorf(string(body)))
+		return nil, gqlerror.Wrap(fmt.Errorf(string(body)))
 	}
 
 	var product *model.Product
@@ -225,8 +275,13 @@ func (r *queryResolver) Orders(ctx context.Context) ([]*model.Order, error) {
 	resp, err := http.Get(r.OrderURL)
 
 	if err != nil {
-		log.Panic(err)
-		return []*model.Order{}, err
+		log.Println(err)
+		return nil, gqlerror.Wrap(err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		log.Println(fmt.Errorf(string(body)))
+		return nil, gqlerror.Wrap(fmt.Errorf(string(body)))
 	}
 
 	var orders []*model.Order
@@ -240,8 +295,14 @@ func (r *queryResolver) Order(ctx context.Context, orderID string, id string) (*
 	resp, err := http.Get(r.OrderURL + "/" + id)
 
 	if err != nil {
-		log.Panic(err)
-		return &model.Order{}, err
+		log.Println(err)
+		return nil, gqlerror.Wrap(err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		log.Println(fmt.Errorf(string(body)))
+		return nil, gqlerror.Wrap(fmt.Errorf(string(body)))
 	}
 
 	var order *model.Order

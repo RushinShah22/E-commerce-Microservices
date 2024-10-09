@@ -37,11 +37,18 @@ func main() {
 	}}
 
 	c.Directives.Auth = func(ctx context.Context, obj interface{}, next graphql.Resolver) (res interface{}, err error) {
-
+		defer func() {
+			myErr := &err
+			fmt.Println("yess")
+			fmt.Println(*myErr)
+		}()
 		c := graphql.GetOperationContext(ctx)
 		header := strings.Split(c.Headers.Get("Authorization"), " ")
+		fmt.Println(header)
 		if len(header) != 2 {
-			return nil, fmt.Errorf("No authentication token was found.")
+			fmt.Println("yess")
+			err = fmt.Errorf("No bearer token was found")
+			return
 		}
 
 		token := header[1]
@@ -51,19 +58,19 @@ func main() {
 
 		if _, err = primitive.ObjectIDFromHex(providedId); err != nil {
 			log.Println("Provided incorrect id for token verification.")
-			return nil, fmt.Errorf("Please provide a valid id.")
+			return
 		}
 		id, role, err := graph.VerifyToken(token, providedId)
 
 		if err != nil {
-			log.Panic(err)
-			return nil, err
+			log.Println(err)
+			return
 		}
 
 		ctx = context.WithValue(ctx, "role", role)
 		ctx = context.WithValue(ctx, "id", id)
-		return next(ctx)
 
+		return next(ctx)
 	}
 
 	c.Directives.HasRole = func(ctx context.Context, obj interface{}, next graphql.Resolver, role model.Role) (res interface{}, err error) {
@@ -71,9 +78,9 @@ func main() {
 
 		if r != role.String() {
 			log.Println("Unauthorized access.")
-			return nil, fmt.Errorf("Only %s is allowed to perform this operation.", role)
+			return struct{}{}, fmt.Errorf("Only %s is allowed to perform this operation.", role)
 		}
-
+		defer func() { fmt.Println(err) }()
 		return next(ctx)
 	}
 
