@@ -68,7 +68,6 @@ func main() {
 
 	c.Directives.HasRole = func(ctx context.Context, obj interface{}, next graphql.Resolver, role model.Role) (res interface{}, err error) {
 		r := ctx.Value("role")
-		fmt.Printf("%s %s\n", r, role)
 
 		if r != role.String() {
 			log.Println("Unauthorized access.")

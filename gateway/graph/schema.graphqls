@@ -8,7 +8,7 @@ enum Role {
 }
 type Query {
   users: [User!]!
-  user(id: ID!): User! @hasRole(role: admin) @auth
+  user(id: ID!): User! @auth
   products: [Product!]!
   product(id: ID!): Product!
   orders: [Order!]!
