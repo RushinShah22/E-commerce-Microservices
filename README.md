@@ -102,6 +102,10 @@ To run the project, execute the following command:
 ```
 
 ```sh
+❯ Setup JWT_KEY in gateway docker compose file.
+```
+
+```sh
 ❯ make
 ```
 
