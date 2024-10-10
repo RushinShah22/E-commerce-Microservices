@@ -12,14 +12,11 @@ import (
 	"github.com/RushinShah22/e-commerce-micro/services/orders/pkg/producers"
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/go-chi/chi/v5"
-	"github.com/joho/godotenv"
 )
 
 func main() {
 	// Connect to DB
-	if err := godotenv.Load(); err != nil {
-		log.Println("No .env file found")
-	}
+
 	uri := os.Getenv("MONGODB_URI")
 	port := os.Getenv("PORT")
 

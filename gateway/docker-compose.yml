@@ -9,6 +9,9 @@ services:
     ports:
       - 80:80
       - 8080:8080
+    environment:
+      - PORT=80
+      - JWT_KEY=dontuseit.usesomethingstrong
     networks:
       - e-commerce
 

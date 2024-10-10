@@ -14,7 +14,6 @@ COPY go.sum ./
 RUN go mod download
 
 
-COPY .env ./
 COPY cmd   ./cmd
 COPY pkg ./pkg
 
@@ -29,7 +28,6 @@ COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
 COPY --from=builder /etc/passwd /etc/passwd
 COPY --from=builder /app/users-micro /app
-COPY --from=builder /app/.env /app
 
 USER users-micro
 

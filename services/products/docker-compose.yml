@@ -11,6 +11,9 @@ services:
       - 8000:8000
     networks:
       - e-commerce
+    environment:
+      - PORT=8000
+      - MONGODB_URI=mongodb://products-micro-db:27017
     depends_on:
       - productsDB
   

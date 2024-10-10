@@ -13,17 +13,12 @@ import (
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/RushinShah22/e-commerce-micro/gateway/graph"
 	"github.com/RushinShah22/e-commerce-micro/gateway/graph/model"
-	"github.com/joho/godotenv"
 )
 
 const defaultPort = "8080"
 
 func main() {
-	err := godotenv.Load()
 
-	if err != nil {
-		panic(err)
-	}
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = defaultPort

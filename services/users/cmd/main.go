@@ -11,7 +11,6 @@ import (
 	database "github.com/RushinShah22/e-commerce-micro/services/users/pkg/database"
 	"github.com/RushinShah22/e-commerce-micro/services/users/pkg/producers"
 	"github.com/go-chi/chi/v5"
-	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -19,9 +18,7 @@ import (
 
 func main() {
 	// Connect to DB
-	if err := godotenv.Load(); err != nil {
-		log.Println("No .env file found")
-	}
+
 	uri := os.Getenv("MONGODB_URI")
 	port := os.Getenv("PORT")
 

@@ -9,6 +9,9 @@ services:
     container_name: orders-micro
     ports:
       - 4000:4000
+    environment:
+      - PORT=4000
+      - MONGODB_URI=mongodb://orders-micro-db:27017/
     networks:
       - e-commerce
     depends_on:
