@@ -16,6 +16,7 @@
 	<img src="https://img.shields.io/badge/YAML-CB171E.svg?style=flat&logo=YAML&logoColor=white" alt="YAML">
 	<img src="https://img.shields.io/badge/Docker-2496ED.svg?style=flat&logo=Docker&logoColor=white" alt="Docker">
 	<img src="https://img.shields.io/badge/apache-kafka.svg?style=flat&logo=Go&logoColor=white" alt="Kafka">
+	<img src="https://img.shields.io/badge/GraphQL-E434AA.svg?style=for-the-badge&logo=graphql&logoColor=white" alt="GraphQL">
 </p>
 
 <br>
@@ -29,7 +30,6 @@
   - [🔖 Prerequisites](#-prerequisites)
   - [🤖 Usage](#-usage)
 - [📌 Project Roadmap](#-project-roadmap)
-- [🙌 Acknowledgments](#-acknowledgments)
 
 ---
 
@@ -62,13 +62,20 @@
     ├── README.md
     ├── docker-compose.yml
     ├── gateway
+    │   ├── docker-compose.yml
     │   ├── gateway-dockerfile.dockerfile
-    │   └── go.mod
-    └── services
-        ├── broker
-        ├── orders
-        ├── products
-        └── users
+    │   ├── go.mod
+    │   ├── go.sum
+    │   ├── gqlgen.yml
+    │   ├── graph
+    │   ├── server.go
+    │   └── tools.go
+    ├── services
+    │   ├── broker
+    │   ├── orders
+    │   ├── products
+    │   └── users
+    └── setup.sh
 ```
 
 ---
@@ -87,11 +94,15 @@
 To run the project, execute the following command:
 
 ```sh
-❯ docker network create e-commerce
+❯ git clone https://github.com/RushinShah22/E-commerce-Microservices/
 ```
 
 ```sh
-❯ make all
+❯ cd ./E-commerce-Microservices
+```
+
+```sh
+❯ make
 ```
 
 ### 🔌 Ports
@@ -108,6 +119,6 @@ To run the project, execute the following command:
 
 - [x] **`Task 1`**: <strike>Create Microservices for users, products, orders.</strike>
 - [x] **`Task 2`**: <strike>Implement kafka as broker.</strike>
-- [ ] **`Task 3`**: Implement graphql and authentication.
+- [X] **`Task 3`**: <strike>Implement graphql and authentication.</strike>
 
 ---
